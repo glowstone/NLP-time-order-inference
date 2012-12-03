@@ -1,5 +1,7 @@
+
+
 For our final project in the class, we envision a system that can take a large passage of 
-text and extract the significant actions performed by people or organizations (i.e the “events”) 
+text and extract the significant actions performed by people or organizations (i.e the “events”)
 and infer a temporal ordering of those actions. A system with these capabilities would be useful 
 for answering queries about event ordering and for summarizing large texts.
 We plan to build a system that will recognize and tag events in text and construct a 
@@ -14,6 +16,8 @@ in the text is not related to any other event and has no absolute time, we assum
 occurs after the previous event in the text since most prose is written chronologically. Using 
 this strategy, we can build a timeline that uses the events with exact times as a baseline for the 
 ordering.
+
+
 The final system should be able to take input text and output the chronologically ordered 
 events extracted from the text. After doing this processing, the system will also support queries 
 about which of two events happened first, giving the exact time of each event, if available.
