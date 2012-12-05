@@ -44,19 +44,19 @@ class TemporalAnalyzer(object):
     def __init__(self, filename):
         self.sentences = []
 
-        f = open(filename, 'r')
-        for line in f:
-            self.sentences.append(Sentence(line))
+        # f = open(filename, 'r')
+        # for line in f:
+        #     self.sentences.append(Sentence(line))
 
-        for sentence in self.sentences:
-            sentence.pos_tagged = util.pos_tag_sentence(sentence.text)
-            sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)
-            print sentence
-            print (sentence.text).strip("\n")
-            print sentence.pos_tagged
-            print sentence.entity_tagged
-            print find_temporals.find_temporals(sentence.text)
-            print "\n\n"
+        # for sentence in self.sentences:
+        #     sentence.pos_tagged = util.pos_tag_sentence(sentence.text)
+        #     sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)
+        #     print sentence
+        #     print (sentence.text).strip("\n")
+        #     print sentence.pos_tagged
+        #     print sentence.entity_tagged
+        #     print find_temporals.find_temporals(sentence.text)
+        #     print "\n\n"
             
 
     def process_text(filename=None):
@@ -79,11 +79,56 @@ class TemporalAnalyzer(object):
         """Returns the estimate of the order of the Event with event_id"""
 
 
+class QueryCollection(object):
+    def __init__(self, filename):
+        self.queries = []
+        self.query_types = [TimeQuery, OrderQuery]
+        self.load_query_collection(filename)
+
+    def load_query_collection(self, filename):          
+        f = open(filename, 'r')
+        line = f.readline()
+        while len(line) > 0:                                # Read to end of file
+            if len(line) == 1:                              # Blank line with newline character
+                line = f.readline()
+                continue
+            query_kinds = filter(lambda x: x.shorthand == line.rstrip(), self.query_types)
+            if not len(query_kinds) == 1:
+                error("Valid Queries are %s. You used %s" % ([x.shorthand for x in self.query_types], line))
+
+            arguments = []
+            for i in range(query_kinds[0].argument_lines):
+                arguments.append(f.readline())
+            self.queries.append(query_kinds[0](*arguments))     #Instantiate TimeQuery or OrderQuery
+            line = f.readline()
+
+    def execute(self):
+        for query in self.queries:
+            query.execute()
 
 
+class Query(object):
+    def __init__(self):
+        pass
 
+class TimeQuery(Query):
+    shorthand = 'TIME_QUERY'
+    argument_lines = 1
+    def __init__(self, event_desc_a):
+        self.event_desc_a = event_desc_a
 
+    def execute(self):
+        pass
 
+class OrderQuery(Query):
+    shorthand = 'ORDER_QUERY'
+    argument_lines = 2
+    def __init__(self, event_desc_a, event_desc_b):
+        self.event_desc_a = event_desc_a
+        self.event_desc_b = event_desc_b
+
+    def execute(self):
+        pass
 
 
 def bootstrap(config):
@@ -99,10 +144,8 @@ def bootstrap(config):
 
 def analyze(config):
     if config['analysis_mode'] == 'query':
-        query_config = open(config['analysis_data'], 'r')
-        query_collection = QueryCollection(query_config)
+        query_collection = QueryCollection(config['analysis_data'])
         #query_collection.execute()
-        # TODO prevent other output from being printed so this can be piped to an output file if desired.
     elif config['analysis_mode'] == 'interactive':
         os.system('clear')
         sys.ps1 = "interpreter>>"
@@ -153,11 +196,6 @@ if __name__ == "__main__":
 
     bootstrap(config)
     analyze(config)
-
-
-
-    
-
 
     # d = shelve.open('shelve_test')
     # print analyzer.__dict__
