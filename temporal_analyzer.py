@@ -1,9 +1,11 @@
 
 import sys
+import os
 import find_temporals
 import getopt
 import util
 from hack import get_parse
+import shelve
 
 
 class AbstractEvent(object):
@@ -39,7 +41,7 @@ class Sentence(object):
         self.abstract_events = []                       # Ordered list
         
 class TemporalAnalyzer(object):
-    def __init__(self, filename, config):
+    def __init__(self, filename):
         self.sentences = []
 
         f = open(filename, 'r')
@@ -77,29 +79,87 @@ class TemporalAnalyzer(object):
         """Returns the estimate of the order of the Event with event_id"""
 
 
+
+
+
+
+
+
+
+def bootstrap(config):
+    if config['bootstrap_mode'] == 'input':
+        #Create a TemporalAnalyzer instance
+        analyzer= TemporalAnalyzer(config['bootstrap_data'])
+        print analyzer
+    elif config['bootstrap_mode'] == 'load':
+        pass
+    else:
+        error("Invalid Bootstrapping Mode")
+
+
+def analyze(config):
+    if config['analysis_mode'] == 'query':
+        query_config = open(config['analysis_data'], 'r')
+        query_collection = QueryCollection(query_config)
+        #query_collection.execute()
+        # TODO prevent other output from being printed so this can be piped to an output file if desired.
+    elif config['analysis_mode'] == 'interactive':
+        os.system('clear')
+        sys.ps1 = "interpreter>>"
+        os.environ['PYTHONINSPECT'] = 'True'
+    else:
+        error("Invalid Analysis Mode")
+
+
+def error(message):
+    print message
+    sys.exit(2)
+
+
 if __name__ == "__main__":
     try:
-        options, remaining = getopt.gnu_getopt(sys.argv[1:], "f:s:v", ["filename=", "start=", "verbose"])
+        options, remaining = getopt.gnu_getopt(sys.argv[1:], "f:s:q:v", ["filename=", "load_shelve=", "query=", "verbose"])
     except getopt.GetoptError:
         # Invalid Argument was provided
-        print "python temporal_analysis.py -f <filename> [-v / --verbose] [-s ISO / --start ISO]"
+        print "python temporal_analysis.py [-f <filename> / --filename <filename> / -l <shelve> / --load_shelve <shelve>] [-q <queryfile> | Default Interactive Mode][-v / --verbose]"
         sys.exit(2)
 
-    config = {"start_mode": False,
-              "start": None,
-              "verbose_mode": False}
+    config = {
+              "bootstrap_mode": None,
+              "bootstrap_data": None,
+              "analysis_mode": None,
+              "analysis_data": None, 
+              "verbose_mode": False,    
+              }
+
     for option in options:
         name, argument = option
+
         if name == '-f' or name == 'filename':
-            filename = argument
+            config['bootstrap_mode'] = "input"
+            config['bootstrap_data'] = argument     # Filename of textual data file
+        elif name == '-l' or name == 'load_shelve':
+            config['bootstrap_mode'] = "load"
+            config['bootstrap_data'] = argument     # Filename of shelve of pre-processed data
+
+        if name == '-q' or name == 'query':
+            config['analysis_mode'] = "query"
+            config['analysis_data'] = argument      # Filename of file specifying queries to perform
+        else:
+            config['analysis_mode'] = "interactive"
+
         if name == '-v' or name == '--verbose':
             config['verbose_mode'] = True
-        if name == '-s' or name == '--start':
-            config['start_mode'] = True
-            config['start'] = argument
 
-    #Create a TemporalAnalyzer instance
-    analyzer= TemporalAnalyzer(filename, config)
-    print analyzer
+    bootstrap(config)
+    analyze(config)
 
-    # Analyzer now supports queries
+
+
+    
+
+
+    # d = shelve.open('shelve_test')
+    # print analyzer.__dict__
+    # d['data'] = analyzer.__dict__
+    # d.close()

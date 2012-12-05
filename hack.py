@@ -3,7 +3,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 
 url = 'http://nlp.stanford.edu:8080/parser/index.jsp'
-user_agent = 'Dolphins!!!'
+user_agent = 'Please build an API'
 header = { 'User-Agent' : user_agent }
 
 def get_parse(sentence):
