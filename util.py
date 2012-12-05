@@ -2,10 +2,10 @@ from nltk.metrics.distance import edit_distance
 from nltk import pos_tag, word_tokenize, ne_chunk
 
 
-COORD_CONJS = ["after", "how", "till", "'til'", "although", "if", "unless", "as", "inasmuch", "until", "as if", 
-"in order that", "when", "as long as", "lest", "whenever", "as much as", "now that", "where", "as soon as", 
-"provided", "wherever", "as though", "since", "while", "because", "so that", "before", "than", "even if", 
-"that", "even though", "though"]
+COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as much as', 'as soon as', 'as though',
+ 'because', 'before', 'even if', 'even though', 'how', 'if', 'in order that', 'inasmuch', 'lest', 'now that',
+ 'provided', 'since', 'so that', 'than', 'that', 'though', 'till', 'unless', 'until', 'when', 'whenever', 'where',
+ 'wherever', 'while']
 
 
 def sentence_distance(s1, s2):

@@ -1,8 +1,9 @@
 
 import sys
-import timex
+import find_temporals
 import getopt
 import util
+from hack import get_parse
 
 
 class AbstractEvent(object):
@@ -49,9 +50,11 @@ class TemporalAnalyzer(object):
             sentence.pos_tagged = util.pos_tag_sentence(sentence.text)
             sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)
             print sentence
-            print sentence.text
+            print (sentence.text).strip("\n")
             print sentence.pos_tagged
             print sentence.entity_tagged
+            print find_temporals.find_temporals(sentence.text)
+            print "\n\n"
             
 
     def process_text(filename=None):
@@ -72,9 +75,6 @@ class TemporalAnalyzer(object):
 
     def estimate_order(event_id):
         """Returns the estimate of the order of the Event with event_id"""
-
-
-
 
 
 if __name__ == "__main__":

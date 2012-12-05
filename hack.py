@@ -6,30 +6,26 @@ url = 'http://nlp.stanford.edu:8080/parser/index.jsp'
 user_agent = 'Dolphins!!!'
 header = { 'User-Agent' : user_agent }
 
-values = {'query': 'Sarah traveled home after Alice got back from the galleria .'}
+def get_parse(sentence):
+	"""
+	Make a POST request to the stanford parser and extract the parse information from the webpage.
 
-data = urllib.urlencode(values)
-# req = urllib2.Request(url+data, None, header) # GET works fine
-req = urllib2.Request(url, data, header)  # POST request doesn't not work
+	sentence is a string with just the plain text of the sentence.
+	returns: A string representing the parse, using the (S (NP (...))) notation
+	"""
+	values = {'query': sentence}
+	data = urllib.urlencode(values)
+	request = urllib2.Request(url, data, header)
 
-response = urllib2.urlopen(req)
+	response = urllib2.urlopen(request)
+	htmlSource = response.read()
 
-htmlSource = response.read()   
+	# Get the text of the parse from the html response
+	soup = BeautifulSoup(htmlSource)
+	parse = soup.find("pre", {"id": "parse"}).text
 
-soup = BeautifulSoup(htmlSource)
+	return parse
 
-answer = soup.find("pre", {"id": "parse"})
-answer2 = answer.text
+	# tree = nltk.tree.Tree(parse)
 
-import nltk
-tree = nltk.tree.Tree(answer2)
-
-print list(tree.subtrees(lambda x: x.node == "SBAR"))[0].leaves()
-
-
-
-
-
-
-      
-
+	# print list(tree.subtrees(lambda x: x.node == "SBAR"))[0].leaves()

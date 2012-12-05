@@ -30,6 +30,18 @@ exp1 = "(before|after|earlier|later|ago)"
 exp2 = "(this|next|last)"
 iso = "\d+[/-]\d+[/-]\d+ \d+:\d+:\d+\.\d+"
 year = "((?<=\s)\d{4}|^\d{4})"
+
+# http://regexlib.com/REDetails.aspx?regexp_id=144
+time = "((([0]?[1-9]|1[0-2])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?( )?(AM|am|aM|Am|PM|pm|pM|Pm))|\
+(([0]?[0-9]|1[0-9]|2[0-3])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?))"   # Matches "9:00 AM", "21:30"
+
+date_string = '((\\d+|((^a(?=\\s)|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\
+thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|\
+seventy|eighty|ninety|hundred|thousand)[-\\s]?)+) (year|day|week|month)s? (before|after|earlier|later|ago))'
+
+date_string = "(%s \d{0,2},? \d{4})" % month
+
+
 regxp1 = "((\d+|(" + numbers + "[-\s]?)+) " + dmy + "s? " + exp1 + ")"
 regxp2 = "(" + exp2 + " (" + dmy + "|" + week_day + "|" + month + "))"
 
@@ -38,11 +50,25 @@ reg2 = re.compile(regxp2, re.IGNORECASE)
 reg3 = re.compile(rel_day, re.IGNORECASE)
 reg4 = re.compile(iso)
 reg5 = re.compile(year)
+regtime = re.compile(time, re.IGNORECASE)
+regdate = re.compile(date_string, re.IGNORECASE)
 
 def tag(text):
+    # The order the regexes appear in this function is the order of precedence they should take over one another
 
     # Initialization
     timex_found = []
+
+    # Time
+    found = regtime.findall(text)
+    print found
+    for timex in found:
+        timex_found.append(timex[0])    # Append the first capture group
+
+    # Date
+    found = regdate.findall(text)
+    for timex in found:
+        timex_found.append(timex[0])
 
     # re.findall() finds all the substring matches, keep only the full
     # matching string. Captures expressions such as 'number of days' ago, etc.
