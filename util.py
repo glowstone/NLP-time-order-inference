@@ -25,7 +25,7 @@ def pos_tag_sentence(sentence):
 	how our POS tagging works without too much effort elsewhere.
 
 	sentence is a string.
-	returns: list of tuples, with each tuple containing (word, tag) for each word in the sentence.
+	returns: ordered list of tuples, with each tuple containing (word, tag) for each word in the sentence.
 	"""
 	return pos_tag(word_tokenize(sentence))
 

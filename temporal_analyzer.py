@@ -6,59 +6,97 @@ import getopt
 import util
 from hack import get_parse
 import shelve
+from query_models import QueryCollection, Query, TimeQuery, OrderQuery
+from event_models import AbstractEvent, Event, ReferenceEvent
+import nltk
 
+import difflib
 
-class AbstractEvent(object):
-    def __init__(self, text):
-        self.text = text
-
-    def __repr__(self):
-        return '<AbstractEvent %s>' % id(self)
-
-
-class Event(AbstractEvent):
-    def __init__(self, text):
-        super(Event, self).__init__(text)
-        self.absolute_times = []
-
-    def __repr__(self):
-        return '<Event %s>' % id(self)
-
-
-class ReferenceEvent(AbstractEvent):
-    def __init__(self):
-        self.reference_times = []         # Estimate of time of the referred to Event
-
-    def __repr__(self):
-        return '<ReferenceEvent %s>' % id(self)
 
 class Sentence(object):
     def __init__(self, text):
-        self.text = text
-        self.pos_tagged = ""
-        self.entity_tagged = ""
+        self.text = text.rstrip()
+        self.pos_tagged = None
+        self.entity_tagged = None
+        self.parse_tree = None
+        self.leading_words = []                         
         self.subordinating_conjunctions = []            # Ordered list
-        self.abstract_events = []                       # Ordered list
+        self.events = []                                # Ordered list
+
+    def __repr__(self):
+        return str(self.__dict__)
+
         
 class TemporalAnalyzer(object):
     def __init__(self, filename):
         self.sentences = []
+        self.load_textual_data(filename)
+        self.study_tree(self.sentences[1])
 
-        # f = open(filename, 'r')
-        # for line in f:
-        #     self.sentences.append(Sentence(line))
+    def load_textual_data(self, filename):
+        f = open(filename, 'r')
+        for line in f:
+            self.sentences.append(Sentence(line))
 
-        # for sentence in self.sentences:
-        #     sentence.pos_tagged = util.pos_tag_sentence(sentence.text)
-        #     sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)
-        #     print sentence
-        #     print (sentence.text).strip("\n")
-        #     print sentence.pos_tagged
-        #     print sentence.entity_tagged
-        #     print find_temporals.find_temporals(sentence.text)
-        #     print "\n\n"
+        for sent in self.sentences:
+            sent.pos_tagged = util.pos_tag_sentence(sent.text)
+            sent.entity_tagged = util.entity_tag_sentence(sent.pos_tagged)
+            sent.parse_tree = get_parse(sent.text)
+
+            # print sent
+            # print sent.text
+            # print sent.pos_tagged
+            # print sent.entity_tagged
+            #print find_temporals.find_temporals(sentence.text)
+            # print "\n\n"
+
+    def study_tree(self, sent):
+        print sent
+        tree = nltk.tree.ParentedTree(sent.parse_tree)
+        print tree
+        print dir(tree)
+
+        all_leaves = tree.leaves()
+        print "Subtrees!!!!!!!!!!!!!!"
+        subtrees = [subtree for subtree in tree.subtrees(lambda x: x.node == "SBAR")]
+        print subtrees
+        print len(subtrees)
+        for subtree in subtrees:
+            special = subtree.leaves()
+            print subtree.height()
+
+        print tree.pos()
+
+        print "Comparison"
+        print all_leaves
+        print special
+
+        # Naive subsequence matching implementation
+        sent_leaves = tree.leaves()
+        subseq = special
+        print sent_leaves
+        print subseq
+        result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
+
+        (start, end) = result[0]
+        print sent_leaves[0:start]
+        print sent_leaves[end:]
+        
+        # print tree.subtrees().next()
+        # print tree.pos()
+        # print tree[0]
+        # print tree[0][0]
+        # print tree[0][1]
+        # print tree[0][1][0]
+        # print len(tree)
+        
+
+
+
+    def dump_data(self):
+        for sent in self.sentences:
+            print sent
             
-
     def process_text(filename=None):
         """
         Takes in the input file and builds the DataStructure to support queries
@@ -77,59 +115,13 @@ class TemporalAnalyzer(object):
 
     def estimate_order(event_id):
         """Returns the estimate of the order of the Event with event_id"""
-
-
-class QueryCollection(object):
-    def __init__(self, filename):
-        self.queries = []
-        self.query_types = [TimeQuery, OrderQuery]
-        self.load_query_collection(filename)
-
-    def load_query_collection(self, filename):          
-        f = open(filename, 'r')
-        line = f.readline()
-        while len(line) > 0:                                # Read to end of file
-            if len(line) == 1:                              # Blank line with newline character
-                line = f.readline()
-                continue
-            query_kinds = filter(lambda x: x.shorthand == line.rstrip(), self.query_types)
-            if not len(query_kinds) == 1:
-                error("Valid Queries are %s. You used %s" % ([x.shorthand for x in self.query_types], line))
-
-            arguments = []
-            for i in range(query_kinds[0].argument_lines):
-                arguments.append(f.readline())
-            self.queries.append(query_kinds[0](*arguments))     #Instantiate TimeQuery or OrderQuery
-            line = f.readline()
-
-    def execute(self):
-        for query in self.queries:
-            query.execute()
-
-
-class Query(object):
-    def __init__(self):
         pass
 
-class TimeQuery(Query):
-    shorthand = 'TIME_QUERY'
-    argument_lines = 1
-    def __init__(self, event_desc_a):
-        self.event_desc_a = event_desc_a
-
-    def execute(self):
-        pass
-
-class OrderQuery(Query):
-    shorthand = 'ORDER_QUERY'
-    argument_lines = 2
-    def __init__(self, event_desc_a, event_desc_b):
-        self.event_desc_a = event_desc_a
-        self.event_desc_b = event_desc_b
-
-    def execute(self):
-        pass
-
+    def shelve_processed_data(self, filename):
+        """Stores a TemporalInference object in a persistent shelve file database."""
+        d = shelve.open(filename)
+        d['temporal_analyzer'] = self
+        d.close()
 
 def bootstrap(config):
     if config['bootstrap_mode'] == 'input':
@@ -195,9 +187,23 @@ if __name__ == "__main__":
             config['verbose_mode'] = True
 
     bootstrap(config)
-    analyze(config)
+    #analyze(config)
 
-    # d = shelve.open('shelve_test')
-    # print analyzer.__dict__
-    # d['data'] = analyzer.__dict__
-    # d.close()
+    match = [0,1]
+    full = [0,1,2,3]
+
+    # Naive subsequence matching implementation
+    #(start, stop) for i in range(len(full)) for j in range(len(match), len(full))
+
+    for start in range(len(full)-len(match)+1):
+        print full[start:start+len(match)]
+        if full[start:start+len(match)] == match:
+            print "Found!!"
+
+    full = ['the', 'cat', 'in', 'the', 'hat']
+    subseq = ['cat', 'in']
+    print filter(lambda (start, end): full[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(full) - len(subseq) + 1)])
+
+
+
+    
