@@ -12,6 +12,8 @@ import nltk
 
 import difflib
 
+PATH_TO_SHELVE = 'shelved_data/'
+
 
 class Sentence(object):
     def __init__(self, text):
@@ -23,13 +25,29 @@ class Sentence(object):
         self.subordinating_conjunctions = []            # Ordered list
         self.events = []                                # Ordered list
 
-    def __repr__(self):
-        return str(self.__dict__)
+    def pprint(self):
+        print self.pos_tagged
+        print self.entity_tagged
+        print self.parse_tree
 
+    def __repr__(self):
+        return '<Sentence %s>' % self.text[:20]
+
+class TimeDataStore(object):
+    def __init__(self):
+        pass
+
+class OrderDataStore(object):
+    def __init__(self):
+        pass
         
 class TemporalAnalyzer(object):
     def __init__(self, filename):
+        self.filename = filename
         self.sentences = []
+        self.time_data_store = TimeDataStore()
+        self.order_data_store = OrderDataStore()
+        # Initialization
         self.load_textual_data(filename)
         self.study_tree(self.sentences[1])
 
@@ -117,19 +135,35 @@ class TemporalAnalyzer(object):
         """Returns the estimate of the order of the Event with event_id"""
         pass
 
-    def shelve_processed_data(self, filename):
-        """Stores a TemporalInference object in a persistent shelve file database."""
+    def shelve_processed_data(self, filename=None):
+        """
+        Stores a TemporalInference object in a persistent shelve file database. 
+        Stores in provided filename. Otherwise, stores in the PATH_TO_SHELVE folder with 
+        a filename to match the filename of the original text file
+        """
+        if not filename:
+            filename = PATH_TO_SHELVE + self.filename.split("/")[-1]
+        print filename
         d = shelve.open(filename)
         d['temporal_analyzer'] = self
         d.close()
 
+    def __repr__(self):
+        return '<TemporalAnalyzer %s>' % self.sentences
+
+
 def bootstrap(config):
     if config['bootstrap_mode'] == 'input':
         #Create a TemporalAnalyzer instance
-        analyzer= TemporalAnalyzer(config['bootstrap_data'])
+        text_filename = config['bootstrap_data']
+        analyzer= TemporalAnalyzer(text_filename)
+        analyzer.shelve_processed_data()
         print analyzer
     elif config['bootstrap_mode'] == 'load':
-        pass
+        shelve_filename = config['bootstrap_data']
+        d = shelve.open(PATH_TO_SHELVE + shelve_filename)
+        analyzer = d['temporal_analyzer']
+        print analyzer
     else:
         error("Invalid Bootstrapping Mode")
 
@@ -153,7 +187,7 @@ def error(message):
 
 if __name__ == "__main__":
     try:
-        options, remaining = getopt.gnu_getopt(sys.argv[1:], "f:s:q:v", ["filename=", "load_shelve=", "query=", "verbose"])
+        options, remaining = getopt.gnu_getopt(sys.argv[1:], "f:l:q:v", ["filename=", "load_shelve=", "query=", "verbose"])
     except getopt.GetoptError:
         # Invalid Argument was provided
         print "python temporal_analysis.py [-f <filename> / --filename <filename> / -l <shelve> / --load_shelve <shelve>] [-q <queryfile> | Default Interactive Mode][-v / --verbose]"
@@ -188,22 +222,4 @@ if __name__ == "__main__":
 
     bootstrap(config)
     #analyze(config)
-
-    match = [0,1]
-    full = [0,1,2,3]
-
-    # Naive subsequence matching implementation
-    #(start, stop) for i in range(len(full)) for j in range(len(match), len(full))
-
-    for start in range(len(full)-len(match)+1):
-        print full[start:start+len(match)]
-        if full[start:start+len(match)] == match:
-            print "Found!!"
-
-    full = ['the', 'cat', 'in', 'the', 'hat']
-    subseq = ['cat', 'in']
-    print filter(lambda (start, end): full[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(full) - len(subseq) + 1)])
-
-
-
     
