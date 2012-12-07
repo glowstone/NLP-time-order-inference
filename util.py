@@ -32,8 +32,8 @@ def entity_tag_sentence(sentence):
 def event_compare(event, text):
 	"""
 	Computes a score of similarity between event and text. This is calculated on two metrics:
-		1. The levenshtein distance between event.text and text, divided by the numbe of words in event.text
-		2. The percenteage of entities in event.entities that also occur as words in the text
+		1. The levenshtein distance between event.text and text, divided by the number of words in event.text
+		2. The percentage of entities in event.entities that also occur as words in the text
 	A higher score means a closer match.
 
 	event is an instance of and AbstractEvent
@@ -46,12 +46,7 @@ def event_compare(event, text):
 	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
 	base_score = 1 - edit_distance(event.text.lower().split(), text.split())/float(len(event.text.split()))
 	# entity_match_score is the percentage of entities in event.entities that occur in the text
-	# entity_match_score = sum([entity in text for entity in event.entities])/float(len(event.entities))
-	entity_match_score = 0
-	for entity in event.entities:
-		if entity.lower() in text:
-			entity_match_score += 1
-	entity_match_score /= float(len(event.entities))
+	entity_match_score = sum([entity.lower() in text for entity in event.entities])/float(len(event.entities))
 	print base_score, entity_match_score
 	return (base_score, entity_match_score)
 
