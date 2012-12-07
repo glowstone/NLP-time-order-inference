@@ -69,36 +69,47 @@ class TemporalAnalyzer(object):
             # print "\n\n"
 
     def study_tree(self, sent):
+        raw_input("Studying tree")
         print sent
         tree = nltk.tree.ParentedTree(sent.parse_tree)
         print tree
         # print dir(tree)
 
         all_leaves = tree.leaves()
-        print "Subtrees!!!!!!!!!!!!!!"
+        # print "Subtrees!!!!!!!!!!!!!!"
         subtrees = [subtree for subtree in tree.subtrees(lambda x: x.node == "SBAR")]
+        print "Printing subtrees"
         print subtrees
         print len(subtrees)
+        print "Printing height of subtrees"
         for subtree in subtrees:
             special = subtree.leaves()
             print subtree.height()
 
+        print "POS tags"
         print tree.pos()
 
-        print "Comparison"
-        print all_leaves
-        print special
+        # print "Comparison"
+        # print all_leaves
+        # print special
 
         # Naive subsequence matching implementation
+        print "Matching"
         sent_leaves = tree.leaves()
         subseq = special
-        print sent_leaves
-        print subseq
+        print "Leaves", sent_leaves
+        print "Subsequence", subseq
         result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
-
+        print result
         (start, end) = result[0]
+        print "Done!"
         print sent_leaves[0:start]
+        print sent_leaves[start:end]
         print sent_leaves[end:]
+        print sent.pos_tagged[start:end]
+        
+        # Now use the start and end indices to split the tree into its subtrees
+        self.get_events_from_indices(tree, start, end)
         
         # print tree.subtrees().next()
         # print tree.pos()
@@ -107,9 +118,25 @@ class TemporalAnalyzer(object):
         # print tree[0][1]
         # print tree[0][1][0]
         # print len(tree)
-        
 
 
+    def get_events_from_indices(self, tree, start, end):
+        # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
+        # For example, if treeposition_spanning_leaves returns (0, 1, 2), then you need to take the 0 index
+        # of tree, then the 1 index of that subtree, then the 2 index of that sub-subtree to get the tree 
+        # spanning those leaves
+        position = tree.treeposition_spanning_leaves(start, end)
+        subtree = tree
+        for p in position:
+            subtree = subtree[p]
+
+        tree_copy = tree
+        # Now do almost the same thing, but delete the subtree from the main tree
+        for p in position[:-1]:
+            tree_copy = tree_copy[p]
+        del tree_copy[position[-1]]
+
+        return [tree, subtree]
 
     def dump_data(self):
         for sent in self.sentences:

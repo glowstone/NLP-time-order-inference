@@ -83,7 +83,6 @@ def extract_entities(event):
 	"""
 	# TODO The text should probably already be tagged and tokenized before this step
 	tree = ne_chunk(pos_tag(word_tokenize(event.text)))
-	print tree
 	entities = []
 
 	people = tree.subtrees(lambda x: x.node == "PERSON")
