@@ -7,6 +7,7 @@ import os
 import sys
 from datetime import datetime
 from dateutil import parser
+from util import event_match
 
 
 # Predefined strings.
@@ -92,13 +93,13 @@ def find_temporals(text):
 			date_time_str = month_day_years_found.pop(0) + " " + times_found.pop(0)
 			date = parse_datetime(date_time_str)
 			date2 = Date(year=date.year, month=date.month, day=date.day, hour=date.hour, minute=date.minute)
-			datetime.append(date2)
+			datetimes.append(date2)
 
 		elif len(month_years_found) > 0:
 			date_time_str = month_years_found.pop(0) + " " + times_found.pop(0)
 			date = parse_datetime(date_time_str)
 			date2 = Date(year=date.year, month=date.month, hour=date.hour, minute=date.minute)
-			datetime.append(date2)
+			datetimes.append(date2)
 
 		elif len(month_days_found) > 0:
 			date_time_str = month_days_found.pop(0) + " " + times_found.pop(0)
@@ -106,7 +107,7 @@ def find_temporals(text):
 			raw_input()
 			date = parse_datetime(date_time_str)
 			date2 = Date(month=date.month, day=date.day, hour=date.hour, minute=date.minute)
-			datetime.append(date2)
+			datetimes.append(date2)
 
 	# Don't know anything about the hour or minutes
 	for date in month_day_years_found:
@@ -161,6 +162,11 @@ class Date():
 
 	def __repr__(self):
 		return "Date %s %s %s %s %s" % (self.year, self.month, self.day, self.hour, self.minute)
+
+
+def when(events, text):
+	event = event_match(events, text)
+	return event.absolute_times
 
 
 if __name__ == '__main__':

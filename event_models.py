@@ -1,4 +1,5 @@
 from util import extract_entities
+from find_temporals import find_temporals
 
 
 class AbstractEvent(object):
@@ -13,7 +14,7 @@ class AbstractEvent(object):
 class Event(AbstractEvent):
     def __init__(self, text):
         super(Event, self).__init__(text)
-        self.absolute_times = []
+        self.absolute_times = find_temporals(text)
 
     def __repr__(self):
         return '<Event %s>' % self.text

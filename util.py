@@ -51,7 +51,7 @@ def event_compare(event, text):
 	return (base_score, entity_match_score)
 
 
-def best_match(events, text):
+def event_match(events, text):
 	"""
 	Given a list of AbstractEvents, finds the AbstractEvent e that maximizes the score returned by 
 	event_compare(e, text).
