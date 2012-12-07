@@ -8,17 +8,6 @@ COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as mu
  'wherever', 'while']
 
 
-def sentence_distance(s1, s2):
-	"""
-	Computes the Levenshtein Distance (in words) between two sentences s1 and s2.
-	s1 and s2 are both strings
-	returns: int, the number of edits that must be made for s1 and s2 to be equal
-	"""
-	s1 = word_tokenize(s1)	# Convert them both into lists of words, so that the edit distance is computed
-	s2 = word_tokenize(s2)	# in words instead of in characters
-	return edit_distance(s1, s2)
-
-
 def pos_tag_sentence(sentence):
 	"""
 	Just a wrapper around nltk.pos_tag. Using this as an abstraction layer so that we could theoretically change
@@ -38,3 +27,81 @@ def entity_tag_sentence(sentence):
 	sentence is a POS tagged sentence, as returned by nltk.pos_tag
 	"""
 	return ne_chunk(sentence)
+
+
+def event_compare(event, text):
+	"""
+	Computes a score of similarity between event and text. This is calculated on two metrics:
+		1. The levenshtein distance between event.text and text, divided by the numbe of words in event.text
+		2. The percenteage of entities in event.entities that also occur as words in the text
+	A higher score means a closer match.
+
+	event is an instance of and AbstractEvent
+	text is a string
+
+	returns: a tuple of (float, float)
+	"""
+	# print event.text
+	text = text.lower()
+	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
+	base_score = 1 - edit_distance(event.text.lower().split(), text.split())/float(len(event.text.split()))
+	# entity_match_score is the percentage of entities in event.entities that occur in the text
+	# entity_match_score = sum([entity in text for entity in event.entities])/float(len(event.entities))
+	entity_match_score = 0
+	for entity in event.entities:
+		if entity.lower() in text:
+			entity_match_score += 1
+	entity_match_score /= float(len(event.entities))
+	print base_score, entity_match_score
+	return (base_score, entity_match_score)
+
+
+def best_match(events, text):
+	"""
+	Given a list of AbstractEvents, finds the AbstractEvent e that maximizes the score returned by 
+	event_compare(e, text).
+
+	events is a list of AbstractEvents
+	text is a string
+
+	returns: an AbstractEvent
+	"""
+	score = event_compare(events[0], text)[0]
+	best_event = events[0]
+	for event in events[1:]:
+		# print event
+		new_score = event_compare(event, text)[0]
+		if new_score > score:
+			# print new_score, score
+			score = new_score
+			best_event = event
+	return best_event
+
+
+def extract_entities(event):
+	"""
+	Given an AbstractEvent, finds all named entities in the text of the event.
+
+	event is an instance of an AbstractEvent.
+
+	returns: A list of strings
+	"""
+	# TODO The text should probably already be tagged and tokenized before this step
+	tree = ne_chunk(pos_tag(word_tokenize(event.text)))
+	print tree
+	entities = []
+
+	people = tree.subtrees(lambda x: x.node == "PERSON")
+	for person in people:
+		entities.extend([leaf[0] for leaf in person.leaves()])
+
+	places = tree.subtrees(lambda x: x.node == "GPE")
+	for place in places:
+		entities.extend([leaf[0] for leaf in place.leaves()])
+
+	organizations = tree.subtrees(lambda x: x.node == "ORGANIZATION")
+	for org in organizations:
+		entities.extend([leaf[0] for leaf in org.leaves()])
+	
+	
+	return entities

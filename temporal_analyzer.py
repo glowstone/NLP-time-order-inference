@@ -72,7 +72,7 @@ class TemporalAnalyzer(object):
         print sent
         tree = nltk.tree.ParentedTree(sent.parse_tree)
         print tree
-        print dir(tree)
+        # print dir(tree)
 
         all_leaves = tree.leaves()
         print "Subtrees!!!!!!!!!!!!!!"
