@@ -103,8 +103,6 @@ def find_temporals(text):
 
 		elif len(month_days_found) > 0:
 			date_time_str = month_days_found.pop(0) + " " + times_found.pop(0)
-			print date_time_str
-			raw_input()
 			date = parse_datetime(date_time_str)
 			date2 = Date(month=date.month, day=date.day, hour=date.hour, minute=date.minute)
 			datetimes.append(date2)

@@ -49,7 +49,9 @@ class TemporalAnalyzer(object):
         self.order_data_store = OrderDataStore()
         # Initialization
         self.load_textual_data(filename)
-        self.study_tree(self.sentences[1])
+        for sentence in self.sentences:
+            self.study_tree(sentence)
+            print "Sentence had %s events" % len(sentence.events)
 
     def load_textual_data(self, filename):
         f = open(filename, 'r')
@@ -57,9 +59,9 @@ class TemporalAnalyzer(object):
             self.sentences.append(Sentence(line))
 
         for sent in self.sentences:
-            sent.pos_tagged = util.pos_tag_sentence(sent.text)
-            sent.entity_tagged = util.entity_tag_sentence(sent.pos_tagged)
-            sent.parse_tree = get_parse(sent.text)
+            sent.parse_tree = nltk.tree.ParentedTree(get_parse(sent.text))
+            sent.pos_tagged = sent.parse_tree.pos()
+            sent.entity_tagged = util.entity_tag_sentence(sent.pos_tagged)  # TODO entity tagging happens here and in Event.__init__
 
             # print sent
             # print sent.text
@@ -69,47 +71,51 @@ class TemporalAnalyzer(object):
             # print "\n\n"
 
     def study_tree(self, sent):
-        raw_input("Studying tree")
-        print sent
-        tree = nltk.tree.ParentedTree(sent.parse_tree)
-        print tree
+        # print sent
+        tree = sent.parse_tree
+        # print tree
         # print dir(tree)
 
         all_leaves = tree.leaves()
         # print "Subtrees!!!!!!!!!!!!!!"
         subtrees = [subtree for subtree in tree.subtrees(lambda x: x.node == "SBAR")]
-        print "Printing subtrees"
-        print subtrees
-        print len(subtrees)
-        print "Printing height of subtrees"
+        if len(subtrees) == 0:
+            # No subtrees
+            sent.events.append(Event(sent.parse_tree))
+            return
+        # print "Printing subtrees"
+        # print subtrees
+        # print len(subtrees)
+        # print "Printing height of subtrees"
         for subtree in subtrees:
             special = subtree.leaves()
-            print subtree.height()
+            # print subtree.height()
 
-        print "POS tags"
-        print tree.pos()
+        # print "POS tags"
+        # print tree.pos()
 
         # print "Comparison"
         # print all_leaves
         # print special
 
         # Naive subsequence matching implementation
-        print "Matching"
+        # print "Matching"
         sent_leaves = tree.leaves()
         subseq = special
-        print "Leaves", sent_leaves
-        print "Subsequence", subseq
+        # print "Leaves", sent_leaves
+        # print "Subsequence", subseq
         result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
-        print result
+        # print result
         (start, end) = result[0]
-        print "Done!"
-        print sent_leaves[0:start]
-        print sent_leaves[start:end]
-        print sent_leaves[end:]
-        print sent.pos_tagged[start:end]
+        # print "Done!"
+        # print sent_leaves[0:start]
+        # print sent_leaves[start:end]
+        # print sent_leaves[end:]
+        # print sent.pos_tagged[start:end]
         
         # Now use the start and end indices to split the tree into its subtrees
-        self.get_events_from_indices(tree, start, end)
+        for event in self.get_events_from_indices(tree, start, end):
+            sent.events.append(Event(event))
         
         # print tree.subtrees().next()
         # print tree.pos()
@@ -121,6 +127,16 @@ class TemporalAnalyzer(object):
 
 
     def get_events_from_indices(self, tree, start, end):
+        """
+        Given a tree and the start/end indices of an event within that tree, returns both the event specified by start
+        and end AND the event that falls outside that region. Basically, splits the tree up into two subtrees
+        corresponding to the two events.
+
+        tree is and instance of ParentedTree
+        start and end are ints
+
+        returns: a list of [ParentedTree, ParentedTree]
+        """
         # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
         # For example, if treeposition_spanning_leaves returns (0, 1, 2), then you need to take the 0 index
         # of tree, then the 1 index of that subtree, then the 2 index of that sub-subtree to get the tree 
