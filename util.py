@@ -42,12 +42,15 @@ def event_compare(event, text):
 	returns: a tuple of (float, float)
 	"""
 	# print event.text
-	text = text.lower()
+
+	text = filter(lambda x: len(x) > 3, text.lower().split())
+	text2 = filter(lambda x: len(x) > 3, event.text.lower().split())
+
 	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
-	base_score = len(event.text.split()) - edit_distance(event.text.lower().split(), text.split())
+	base_score = len(text2) - edit_distance(text2, text)
 	# entity_match_score is the percentage of entities in event.entities that occur in the text
 	entity_match_score = sum([entity.lower() in text for entity in event.entities])
-	print base_score, entity_match_score
+	# print base_score, entity_match_score
 	return (base_score, entity_match_score)
 
 
@@ -74,12 +77,16 @@ def best_event_match(events, text, threshold_percentage):
 			score = new_score
 			best_event = event
 
+	if not best_event:
+		return None
+
 	threshold = len(best_event.text.split())*threshold_percentage
 	if score < threshold:	
-		print "Event score %s not above threshold %s" % (score, threshold)
+		# print "Event score %s not above threshold %s" % (score, threshold)
 		return None
-		
+
 	print "Best score: %s" % score
+	# print "For match %s,  %s" % (text, best_event.text)
 	return best_event
 
 

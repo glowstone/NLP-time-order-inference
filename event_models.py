@@ -25,11 +25,12 @@ class Event(AbstractEvent):
 
 
 class ReferenceEvent(AbstractEvent):
-    def __init__(self):
+    def __init__(self, tree):
+        super(ReferenceEvent, self).__init__(tree)
         self.reference_times = []               # Estimate of time of the referred to Event
 
     def __repr__(self):
-        return '<ReferenceEvent %s>' % id(self)
+        return '<ReferenceEvent %s>' % self.text
 
 
 # Just for testing

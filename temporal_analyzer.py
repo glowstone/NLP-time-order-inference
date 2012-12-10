@@ -49,13 +49,9 @@ class TemporalAnalyzer(object):
         self.order_data_store = OrderDataStore()
         # Initialization
         self.load_textual_data(filename)
+        self.all_events = []
         for sentence in self.sentences:
             self.study_tree(sentence)
-            print "Sentence had %s events" % len(sentence.events)
-        self.all_events = []
-        for s in self.sentences:
-            for e in s.events:
-                self.all_events.append(e)
 
     def load_textual_data(self, filename):
         f = open(filename, 'r')
@@ -85,41 +81,52 @@ class TemporalAnalyzer(object):
         subtrees = [subtree for subtree in tree.subtrees(lambda x: x.node == "SBAR")]
         if len(subtrees) == 0:
             # No subtrees
-            sent.events.append(Event(sent.parse_tree))
-            return
-        # print "Printing subtrees"
-        # print subtrees
-        # print len(subtrees)
-        # print "Printing height of subtrees"
-        for subtree in subtrees:
-            special = subtree.leaves()
-            # print subtree.height()
+            events = [sent.parse_tree]
+        else:
+            # print "Printing subtrees"
+            # print subtrees
+            # print len(subtrees)
+            # print "Printing height of subtrees"
+            for subtree in subtrees:
+                special = subtree.leaves()
+                # print subtree.height()
 
-        # print "POS tags"
-        # print tree.pos()
+            # print "POS tags"
+            # print tree.pos()
 
-        # print "Comparison"
-        # print all_leaves
-        # print special
+            # print "Comparison"
+            # print all_leaves
+            # print special
 
-        # Naive subsequence matching implementation
-        # print "Matching"
-        sent_leaves = tree.leaves()
-        subseq = special
-        # print "Leaves", sent_leaves
-        # print "Subsequence", subseq
-        result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
-        # print result
-        (start, end) = result[0]
-        # print "Done!"
-        # print sent_leaves[0:start]
-        # print sent_leaves[start:end]
-        # print sent_leaves[end:]
-        # print sent.pos_tagged[start:end]
-        
-        # Now use the start and end indices to split the tree into its subtrees
-        for event in self.get_events_from_indices(tree, start, end):
-            sent.events.append(Event(event))
+            # Naive subsequence matching implementation
+            # print "Matching"
+            sent_leaves = tree.leaves()
+            subseq = special
+            # print "Leaves", sent_leaves
+            # print "Subsequence", subseq
+            result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
+            # print result
+            (start, end) = result[0]
+            # print "Done!"
+            # print sent_leaves[0:start]
+            # print sent_leaves[start:end]
+            # print sent_leaves[end:]
+            # print sent.pos_tagged[start:end]
+            
+            # Now use the start and end indices to split the tree into its subtrees
+            events = self.get_events_from_indices(tree, start, end)
+        for event in events:
+            best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.15)
+            if not best_match:
+                e = Event(event)
+                sent.events.append(e)
+                self.all_events.append(e)
+            else:
+                print "REFERENCE EVENT!"
+                e = ReferenceEvent(event)
+                print "%s refers to %s" % (e, best_match)
+                sent.events.append(e)
+                self.all_events.append(e)
         
         # print tree.subtrees().next()
         # print tree.pos()
