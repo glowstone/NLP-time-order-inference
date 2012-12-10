@@ -51,17 +51,18 @@ def event_compare(event, text):
 	return (base_score, entity_match_score)
 
 
-def event_match(events, text):
+def best_event_match(events, text, threshold_percentage):
 	"""
 	Given a list of AbstractEvents, finds the AbstractEvent e that maximizes the score returned by 
 	event_compare(e, text).
 
 	events is a list of AbstractEvents
 	text is a string
+	threshold_percentage is the value multiplied by the length of the event text to get the threshold score
 
 	returns: an AbstractEvent
 	"""
-	score = 0		# Set this to something above 0 to have it as the minimum score, the threshold
+	score = 0
 	best_event = None
 	for event in events:
 		# print event
@@ -72,10 +73,12 @@ def event_match(events, text):
 			# print new_score, score
 			score = new_score
 			best_event = event
-	threshold = len(best_event.text.split())/10.0
-	if score < threshold:	# Threshold value of 10% of the length of the event's text
+
+	threshold = len(best_event.text.split())*threshold_percentage
+	if score < threshold:	
 		print "Event score %s not above threshold %s" % (score, threshold)
 		return None
+		
 	print "Best score: %s" % score
 	return best_event
 

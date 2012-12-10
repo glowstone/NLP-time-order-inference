@@ -7,7 +7,6 @@ import os
 import sys
 from datetime import datetime
 from dateutil import parser
-from util import event_match
 
 
 # Predefined strings.
@@ -160,11 +159,6 @@ class Date():
 
 	def __repr__(self):
 		return "Date %s %s %s %s %s" % (self.year, self.month, self.day, self.hour, self.minute)
-
-
-def when(events, text):
-	event = event_match(events, text)
-	return event.absolute_times
 
 
 if __name__ == '__main__':

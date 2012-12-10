@@ -1,3 +1,6 @@
+from util import best_event_match
+
+
 class QueryCollection(object):
     def __init__(self, filename):
         self.queries = []
@@ -33,11 +36,16 @@ class Query(object):
 class TimeQuery(Query):
     shorthand = 'TIME_QUERY'
     argument_lines = 1
-    def __init__(self, event_desc_a):
+    def __init__(self, events, event_desc_a):       # TODO this is kind of ugly to have to pass the events in here...
+        self.events = events
         self.event_desc_a = event_desc_a
 
     def execute(self):
-        pass
+        event = best_event_match(self.events, self.event_desc_a, 0.10)
+        if event:
+            return event.absolute_times
+        else:
+            return None
 
 class OrderQuery(Query):
     shorthand = 'ORDER_QUERY'
