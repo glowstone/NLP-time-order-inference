@@ -43,6 +43,8 @@ def event_compare(event, text):
 	"""
 	# print event.text
 
+	# The purpose of the filter is to ignore short, often unimportant words (like "the", "of" etc.) because they were
+	# leading to false positives
 	text = filter(lambda x: len(x) > 3, text.lower().split())
 	text2 = filter(lambda x: len(x) > 3, event.text.lower().split())
 
