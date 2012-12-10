@@ -117,3 +117,12 @@ def extract_entities(event):
 		entities.add(" ".join([leaf[0] for leaf in org.leaves()]))
 	
 	return entities
+
+
+def highest_subtree(tree, tag_list):
+	"""
+	Searches over all subtrees in the given tree that have a root node with a tag in tag_list
+	and returns the subtree with the greatest height
+	Otherwise, returns None
+	"""
+	return max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list)])[1]

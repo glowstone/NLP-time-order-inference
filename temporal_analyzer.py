@@ -10,8 +10,7 @@ from query_models import QueryCollection, Query, TimeQuery, OrderQuery
 from event_models import AbstractEvent, Event, ReferenceEvent
 import nltk
 
-import difflib
-
+# Constants
 PATH_TO_SHELVE = 'shelved_data/'
 
 
@@ -35,11 +34,13 @@ class Sentence(object):
 
 class TimeDataStore(object):
     def __init__(self):
-        pass
+        self.time_table = {}
 
 class OrderDataStore(object):
     def __init__(self):
-        pass
+        self.order_table = {}
+
+
         
 class TemporalAnalyzer(object):
     def __init__(self, filename):
@@ -49,7 +50,7 @@ class TemporalAnalyzer(object):
         self.order_data_store = OrderDataStore()
         # Initialization
         self.load_textual_data(filename)
-        self.all_events = []
+        self.all_events = []                  # Copy of all seen Events
         for sentence in self.sentences:
             self.study_tree(sentence)
 
@@ -71,50 +72,22 @@ class TemporalAnalyzer(object):
             # print "\n\n"
 
     def study_tree(self, sent):
-        # print sent
         tree = sent.parse_tree
-        # print tree
-        # print dir(tree)
-
         all_leaves = tree.leaves()
-        # print "Subtrees!!!!!!!!!!!!!!"
-        subtrees = [subtree for subtree in tree.subtrees(lambda x: x.node == "SBAR")]
-        if len(subtrees) == 0:
-            # No subtrees
-            events = [sent.parse_tree]
-        else:
-            # print "Printing subtrees"
-            # print subtrees
-            # print len(subtrees)
-            # print "Printing height of subtrees"
-            for subtree in subtrees:
-                special = subtree.leaves()
-                # print subtree.height()
+        
+        # Find all SBAR and S phrases and choose the one closest to root (greatest height) to divide the sentence
+        highest_subtree = util.highest_subtree(tree, ['SBAR'])
 
-            # print "POS tags"
-            # print tree.pos()
-
-            # print "Comparison"
-            # print all_leaves
-            # print special
-
-            # Naive subsequence matching implementation
-            # print "Matching"
+        if highest_subtree:
+            print highest_subtree
             sent_leaves = tree.leaves()
-            subseq = special
-            # print "Leaves", sent_leaves
-            # print "Subsequence", subseq
+            subseq = highest_subtree
             result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
-            # print result
             (start, end) = result[0]
-            # print "Done!"
-            # print sent_leaves[0:start]
-            # print sent_leaves[start:end]
-            # print sent_leaves[end:]
-            # print sent.pos_tagged[start:end]
-            
-            # Now use the start and end indices to split the tree into its subtrees
             events = self.get_events_from_indices(tree, start, end)
+        else:
+            events = [sent.parse_tree]
+
         for event in events:
             best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.15)
             if not best_match:
@@ -127,14 +100,7 @@ class TemporalAnalyzer(object):
                 print "%s refers to %s" % (e, best_match)
                 sent.events.append(e)
                 self.all_events.append(e)
-        
-        # print tree.subtrees().next()
-        # print tree.pos()
-        # print tree[0]
-        # print tree[0][0]
-        # print tree[0][1]
-        # print tree[0][1][0]
-        # print len(tree)
+    
 
 
     def get_events_from_indices(self, tree, start, end):
@@ -276,5 +242,5 @@ if __name__ == "__main__":
             config['verbose_mode'] = True
 
     bootstrap(config)
-    analyze(config)
+    #analyze(config)
     
