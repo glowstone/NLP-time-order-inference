@@ -32,6 +32,9 @@ class ReferenceEvent(AbstractEvent):
     def __repr__(self):
         return '<ReferenceEvent %s>' % self.text
 
+    def add_reference(self, event):
+        self.reference = event
+
 
 # Just for testing
 test_events = [Event(ParentedTree(get_parse("Eisenhower joined the 1919 Motor Transport Corps convoy at Frederick, Maryland, after the 1st days travel"))),

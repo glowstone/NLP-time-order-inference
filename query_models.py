@@ -43,6 +43,9 @@ class TimeQuery(Query):
     def execute(self):
         event = best_event_match(self.events, self.event_desc_a, 0.10)
         if event:
+            times = event.absolute_times
+            if not times:
+                return "No time estimate for this event"
             return event.absolute_times
         else:
             return None

@@ -1,11 +1,14 @@
 from nltk.metrics.distance import edit_distance
 from nltk import pos_tag, word_tokenize, ne_chunk
+from nltk.corpus import stopwords
 
 
 COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as much as', 'as soon as', 'as though',
  'because', 'before', 'even if', 'even though', 'how', 'if', 'in order that', 'inasmuch', 'lest', 'now that',
  'provided', 'since', 'so that', 'than', 'that', 'though', 'till', 'unless', 'until', 'when', 'whenever', 'where',
  'wherever', 'while']
+
+ENGLISH_STOPWORDS = stopwords.words("english")
 
 
 def pos_tag_sentence(sentence):
@@ -43,10 +46,8 @@ def event_compare(event, text):
 	"""
 	# print event.text
 
-	# The purpose of the filter is to ignore short, often unimportant words (like "the", "of" etc.) because they were
-	# leading to false positives
-	text = filter(lambda x: len(x) > 3, text.lower().split())
-	text2 = filter(lambda x: len(x) > 3, event.text.lower().split())
+	# Filter out stop words
+	text2 = filter(lambda x: x not in ENGLISH_STOPWORDS, event.text.lower().split())
 
 	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
 	base_score = len(text2) - edit_distance(text2, text)
@@ -65,8 +66,11 @@ def best_event_match(events, text, threshold_percentage):
 	text is a string
 	threshold_percentage is the value multiplied by the length of the event text to get the threshold score
 
-	returns: an AbstractEvent
+	returns: an AbstractEvent, or None if no matching event was found
 	"""
+	# Filter out short, stop words
+	text = filter(lambda x: x not in ENGLISH_STOPWORDS, text.lower().split())
+
 	score = 0
 	best_event = None
 	for event in events:
