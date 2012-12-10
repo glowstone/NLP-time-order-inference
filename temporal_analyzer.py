@@ -5,27 +5,27 @@ import find_temporals
 import getopt
 import util
 from hack import get_parse
+import config
 import shelve
 from query_models import QueryCollection, Query, TimeQuery, OrderQuery
 from event_models import AbstractEvent, Event, ReferenceEvent
 import nltk
 
 # Constants
-PATH_TO_SHELVE = 'shelved_data/'
+
 
 
 class Sentence(object):
     def __init__(self, text):
         self.text = text.rstrip()
-        self.pos_tagged = None
         self.entity_tagged = None
         self.parse_tree = None
+        self.pos_tagged = None
         self.leading_words = []                         
         self.subordinating_conjunctions = []            # Ordered list
         self.events = []                                # Ordered list
 
     def pprint(self):
-        print self.pos_tagged
         print self.entity_tagged
         print self.parse_tree
 
@@ -56,34 +56,31 @@ class TemporalAnalyzer(object):
 
     def load_textual_data(self, filename):
         f = open(filename, 'r')
-        for line in f:
-            self.sentences.append(Sentence(line))
 
         for sent in self.sentences:
             sent.parse_tree = nltk.tree.ParentedTree(get_parse(sent.text))
             sent.pos_tagged = sent.parse_tree.pos()
             sent.entity_tagged = util.entity_tag_sentence(sent.pos_tagged)  # TODO entity tagging happens here and in Event.__init__
 
-            # print sent
-            # print sent.text
-            # print sent.pos_tagged
-            # print sent.entity_tagged
-            #print find_temporals.find_temporals(sentence.text)
-            # print "\n\n"
+            # if ok:
 
-    def study_tree(self, sent):
-        tree = sent.parse_tree
-        all_leaves = tree.leaves()
-        
+            #     self.sentences.append(sentence)
+            #     self.all_events.append(??)
+
+    def analyze(self, sent):
+        """
+        return True/False
+        """
+        sentence_tree = sent.parse_tree
+       
         # Find all SBAR and S phrases and choose the one closest to root (greatest height) to divide the sentence
-        highest_subtree = util.highest_subtree(tree, ['SBAR'])
+        secondary_event_tree = util.secondary_event_subtree(sentence_tree, ['S', 'SBAR'])
+        print secondary_event_tree
 
-        if highest_subtree:
-            # print highest_subtree
-            sent_leaves = tree.leaves()
-            subseq = highest_subtree.leaves()
-            result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
-            (start, end) = result[0]
+        if secondary_event_tree:
+            index_tuples = util.subsequence_search(secondary_event_tree.leaves(), sentence_tree.leaves())
+            print index_tuples
+            (start, end) = index_tuples[0]
             events = self.get_events_from_indices(tree, start, end)
         else:
             events = [sent.parse_tree]
@@ -162,7 +159,7 @@ class TemporalAnalyzer(object):
         a filename to match the filename of the original text file
         """
         if not filename:
-            filename = PATH_TO_SHELVE + self.filename.split("/")[-1]
+            filename = config.PATH_TO_SHELVE + self.filename.split("/")[-1]
         print filename
         d = shelve.open(filename)
         d['temporal_analyzer'] = self
@@ -172,27 +169,27 @@ class TemporalAnalyzer(object):
         return '<TemporalAnalyzer %s>' % self.sentences
 
 
-def bootstrap(config):
-    if config['bootstrap_mode'] == 'input':
+def bootstrap(mode_args):
+    if mode_args['bootstrap_mode'] == 'input':
         #Create a TemporalAnalyzer instance
-        text_filename = config['bootstrap_data']
+        text_filename = mode_args['bootstrap_data']
         analyzer= TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
         print analyzer
-    elif config['bootstrap_mode'] == 'load':
-        shelve_filename = config['bootstrap_data']
-        d = shelve.open(PATH_TO_SHELVE + shelve_filename)
+    elif mode_args['bootstrap_mode'] == 'load':
+        shelve_filename = mode_args['bootstrap_data']
+        d = shelve.open(config.PATH_TO_SHELVE + shelve_filename)
         analyzer = d['temporal_analyzer']
         print analyzer
     else:
         error("Invalid Bootstrapping Mode")
 
 
-def analyze(config):
-    if config['analysis_mode'] == 'query':
-        query_collection = QueryCollection(config['analysis_data'])
+def analyze(mode_args):
+    if mode_args['analysis_mode'] == 'query':
+        query_collection = QueryCollection(mode_args['analysis_data'])
         #query_collection.execute()
-    elif config['analysis_mode'] == 'interactive':
+    elif mode_args['analysis_mode'] == 'interactive':
         os.system('clear')
         sys.ps1 = "interpreter>>"
         os.environ['PYTHONINSPECT'] = 'True'
@@ -213,7 +210,7 @@ if __name__ == "__main__":
         print "python temporal_analysis.py [-f <filename> / --filename <filename> / -l <shelve> / --load_shelve <shelve>] [-q <queryfile> | Default Interactive Mode][-v / --verbose]"
         sys.exit(2)
 
-    config = {
+    mode_args = {
               "bootstrap_mode": None,
               "bootstrap_data": None,
               "analysis_mode": None,
@@ -225,21 +222,21 @@ if __name__ == "__main__":
         name, argument = option
 
         if name == '-f' or name == 'filename':
-            config['bootstrap_mode'] = "input"
-            config['bootstrap_data'] = argument     # Filename of textual data file
+            mode_args['bootstrap_mode'] = "input"
+            mode_args['bootstrap_data'] = argument     # Filename of textual data file
         elif name == '-l' or name == 'load_shelve':
-            config['bootstrap_mode'] = "load"
-            config['bootstrap_data'] = argument     # Filename of shelve of pre-processed data
+            mode_args['bootstrap_mode'] = "load"
+            mode_args['bootstrap_data'] = argument     # Filename of shelve of pre-processed data
 
         if name == '-q' or name == 'query':
-            config['analysis_mode'] = "query"
-            config['analysis_data'] = argument      # Filename of file specifying queries to perform
+            mode_args['analysis_mode'] = "query"
+            mode_args['analysis_data'] = argument      # Filename of file specifying queries to perform
         else:
-            config['analysis_mode'] = "interactive"
+            mode_args['analysis_mode'] = "interactive"
 
         if name == '-v' or name == '--verbose':
-            config['verbose_mode'] = True
+            mode_args['verbose_mode'] = True
 
-    bootstrap(config)
-    #analyze(config)
+    bootstrap(mode_args)
+    #analyze(mode_args)
     

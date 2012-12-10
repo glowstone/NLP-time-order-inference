@@ -1,36 +1,66 @@
+
+import urllib
+import urllib2
+from BeautifulSoup import BeautifulSoup
 from nltk.metrics.distance import edit_distance
 from nltk import pos_tag, word_tokenize, ne_chunk
 from nltk.corpus import stopwords
 
-
+# Kept Temporarily
 COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as much as', 'as soon as', 'as though',
  'because', 'before', 'even if', 'even though', 'how', 'if', 'in order that', 'inasmuch', 'lest', 'now that',
  'provided', 'since', 'so that', 'than', 'that', 'though', 'till', 'unless', 'until', 'when', 'whenever', 'where',
  'wherever', 'while']
 
+# A before B
+BEFORE_CONJS = ["before", "until", ""]
+# A simultaneous with B
+DURING_CONJS = ["as", "during", "as long as", "when", "whenever", "while"]
+# A after B
+AFTER_CONJS = ["after", "now that", "as soon as", "since"]
+
 ENGLISH_STOPWORDS = stopwords.words("english")
 
 
-def pos_tag_sentence(sentence):
-	"""
-	Just a wrapper around nltk.pos_tag. Using this as an abstraction layer so that we could theoretically change
-	how our POS tagging works without too much effort elsewhere.
-
-	sentence is a string.
-	returns: ordered list of tuples, with each tuple containing (word, tag) for each word in the sentence.
-	"""
-	return pos_tag(word_tokenize(sentence))
-
+# Wrappers for NLTK / Parsing Functionalities
+###############################################################################
 
 def entity_tag_sentence(sentence):
 	"""
-	Just a wrapper around nltk.ne_chunk. Using this as an abstraction layer so that we could theoretically change
-	how our entity tagging works without too much effort elsewhere.
+	Wrapper around nltk.ne_chunk. Abstraction here allows changing entity tagger later if desired.
 
 	sentence is a POS tagged sentence, as returned by nltk.pos_tag
 	"""
 	return ne_chunk(sentence)
 
+
+
+def get_parse(sentence):
+	"""
+	Make a POST request to the stanford parser and extract the parse information from the webpage.
+
+	sentence is a string with just the plain text of the sentence.
+	returns: A string representing the parse, using the (S (NP (...))) notation
+	"""
+	#user_agent = 'Please build an API'
+	#header = { 'User-Agent' : user_agent }
+
+	values = {'query': sentence}
+	data = urllib.urlencode(values)
+	request = urllib2.Request(url, data, {})
+
+	response = urllib2.urlopen(request)
+	htmlSource = response.read()
+
+	# Get the text of the parse from the html response
+	soup = BeautifulSoup(htmlSource)
+	parse = soup.find("pre", {"id": "parse"}).text
+
+	return parse
+
+
+# Other Utilities
+###############################################################################
 
 def event_compare(event, text):
 	"""
@@ -124,10 +154,24 @@ def extract_entities(event):
 	return entities
 
 
-def highest_subtree(tree, tag_list):
+def subsequence_search(subseq, sequence):
+	"""
+	Performs naive subsequence searching.
+	
+	Input list subseq and sequence 
+
+	returns a list of (start, end) tuples of indices such that sequence[start:end] == subseq
+	"""
+	index_tuples = filter(lambda (start, end): sequence[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sequence) - len(subseq) + 1)])
+	return index_tuples
+
+
+def secondary_event_subtree(tree, tag_list):
 	"""
 	Searches over all subtrees in the given tree that have a root node with a tag in tag_list
-	and returns the subtree with the greatest height
-	Otherwise, returns None
+
+	returns subtree with the greatest height that is not the original tree
 	"""
-	return max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list)])[1]
+	highest_subtree = max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list) if subtree != tree])[1]
+	return highest_subtree
+
