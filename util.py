@@ -32,11 +32,11 @@ def entity_tag_sentence(sentence):
 def event_compare(event, text):
 	"""
 	Computes a score of similarity between event and text. This is calculated on two metrics:
-		1. The levenshtein distance between event.text and text, divided by the number of words in event.text
+		1. The number of common words between text and event.text
 		2. The percentage of entities in event.entities that also occur as words in the text
 	A higher score means a closer match.
 
-	event is an instance of and AbstractEvent
+	event is an instance of an AbstractEvent
 	text is a string
 
 	returns: a tuple of (float, float)
@@ -44,15 +44,9 @@ def event_compare(event, text):
 	# print event.text
 	text = text.lower()
 	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
-	denom = float(len(event.text.split()))
-	if denom <= 0:
-		return (0.0, 0.0)
-	base_score = 1 - edit_distance(event.text.lower().split(), text.split())/denom
+	base_score = len(event.text.split()) - edit_distance(event.text.lower().split(), text.split())
 	# entity_match_score is the percentage of entities in event.entities that occur in the text
-	denom = float(len(event.entities))
-	if denom <= 0:
-		return (0.0, 0.0)
-	entity_match_score = sum([entity.lower() in text for entity in event.entities])/denom
+	entity_match_score = sum([entity.lower() in text for entity in event.entities])
 	print base_score, entity_match_score
 	return (base_score, entity_match_score)
 
@@ -78,6 +72,11 @@ def event_match(events, text):
 			# print new_score, score
 			score = new_score
 			best_event = event
+	threshold = len(best_event.text.split())/10.0
+	if score < threshold:	# Threshold value of 10% of the length of the event's text
+		print "Event score %s not above threshold %s" % (score, threshold)
+		return None
+	print "Best score: %s" % score
 	return best_event
 
 

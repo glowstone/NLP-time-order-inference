@@ -52,6 +52,10 @@ class TemporalAnalyzer(object):
         for sentence in self.sentences:
             self.study_tree(sentence)
             print "Sentence had %s events" % len(sentence.events)
+        self.all_events = []
+        for s in self.sentences:
+            for e in s.events:
+                self.all_events.append(e)
 
     def load_textual_data(self, filename):
         f = open(filename, 'r')
