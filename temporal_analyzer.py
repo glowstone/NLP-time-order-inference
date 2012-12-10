@@ -79,7 +79,7 @@ class TemporalAnalyzer(object):
         highest_subtree = util.highest_subtree(tree, ['SBAR'])
 
         if highest_subtree:
-            print highest_subtree
+            # print highest_subtree
             sent_leaves = tree.leaves()
             subseq = highest_subtree.leaves()
             result =  filter(lambda (start, end): sent_leaves[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sent_leaves) - len(subseq) + 1)])
@@ -89,7 +89,7 @@ class TemporalAnalyzer(object):
             events = [sent.parse_tree]
 
         for event in events:
-            best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.15)
+            best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.30)
             if best_match:
                 print "REFERENCE EVENT!"
                 e = ReferenceEvent(event)

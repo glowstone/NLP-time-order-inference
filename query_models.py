@@ -53,9 +53,25 @@ class TimeQuery(Query):
 class OrderQuery(Query):
     shorthand = 'ORDER_QUERY'
     argument_lines = 2
-    def __init__(self, event_desc_a, event_desc_b):
+    def __init__(self, events, event_desc_a, event_desc_b):
+        self.events = events
         self.event_desc_a = event_desc_a
         self.event_desc_b = event_desc_b
 
     def execute(self):
-        pass
+        event1 = best_event_match(self.events, self.event_desc_a, 0.10)
+        event2 = best_event_match(self.events, self.event_desc_b, 0.10)
+
+        print event1
+        print event2
+
+        if event1 and event2:
+            if event1.absolute_times and event2.absolute_times:
+                if event1.absolute_times[0] > event2.absolute_times[0]:
+                    return "%s happened before %s" % (event2, event1)
+                elif event1.absolute_times[0] < event2.absolute_times[0]:
+                    return "%s happened before %s" % (event1, event2)
+                else:
+                    return "%s and %s happend at the same time, %s" % (event1, event2, event1.absolute_times[0])
+        else:
+            return None
