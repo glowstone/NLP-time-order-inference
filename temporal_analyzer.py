@@ -141,16 +141,17 @@ class TemporalAnalyzer(object):
         # For example, if treeposition_spanning_leaves returns (0, 1, 2), then you need to take the 0 index
         # of tree, then the 1 index of that subtree, then the 2 index of that sub-subtree to get the tree 
         # spanning those leaves
-        position = tree.treeposition_spanning_leaves(start, end)
+        indices = tree.treeposition_spanning_leaves(start, end)
+
         subtree = tree
-        for p in position:
-            subtree = subtree[p]
+        for i in indices:
+            subtree = subtree[i]
 
         tree_copy = tree
         # Now do almost the same thing, but delete the subtree from the main tree
-        for p in position[:-1]:
-            tree_copy = tree_copy[p]
-        del tree_copy[position[-1]]
+        for i in indices[:-1]:
+            tree_copy = tree_copy[i]
+        del tree_copy[indices[-1]]
 
         return [tree, subtree]
 
@@ -264,5 +265,5 @@ if __name__ == "__main__":
             config['verbose_mode'] = True
 
     bootstrap(config)
-    #analyze(config)
+    analyze(config)
     

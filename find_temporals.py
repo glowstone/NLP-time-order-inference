@@ -20,7 +20,7 @@ year = "((?<=\s)\d{4}|^\d{4})"
 time = "((((\d{1,2})(:\d{0,2})?) ?(A\.?M\.?|P\.?M\.?))|((\d{1,2})(:\d{2})))"
 # date = "(%s\.? \d{0,2}?,? ?\d{4}?)" % month
 
-month_day_year = "(%s\.? \d{1,2},? ?\d{4}?)" % month
+month_day_year = "(%s\.? \d{1,2} ?,? ?\d{4}?)" % month
 month_day = "(%s\.? \d{1,2})" % month
 month_year = "(%s\.? ?\d{4}?)" % month
 

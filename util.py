@@ -44,9 +44,15 @@ def event_compare(event, text):
 	# print event.text
 	text = text.lower()
 	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
-	base_score = 1 - edit_distance(event.text.lower().split(), text.split())/float(len(event.text.split()))
+	denom = float(len(event.text.split()))
+	if denom <= 0:
+		return (0.0, 0.0)
+	base_score = 1 - edit_distance(event.text.lower().split(), text.split())/denom
 	# entity_match_score is the percentage of entities in event.entities that occur in the text
-	entity_match_score = sum([entity.lower() in text for entity in event.entities])/float(len(event.entities))
+	denom = float(len(event.entities))
+	if denom <= 0:
+		return (0.0, 0.0)
+	entity_match_score = sum([entity.lower() in text for entity in event.entities])/denom
 	print base_score, entity_match_score
 	return (base_score, entity_match_score)
 
@@ -61,11 +67,13 @@ def event_match(events, text):
 
 	returns: an AbstractEvent
 	"""
-	score = event_compare(events[0], text)[0]
-	best_event = events[0]
-	for event in events[1:]:
+	score = 0		# Set this to something above 0 to have it as the minimum score, the threshold
+	best_event = None
+	for event in events:
 		# print event
-		new_score = event_compare(event, text)[0]
+		new_score, entity_score = event_compare(event, text)
+		if entity_score == 0:
+			continue
 		if new_score > score:
 			# print new_score, score
 			score = new_score
@@ -83,18 +91,18 @@ def extract_entities(event):
 	"""
 	# TODO The text should probably already be tagged and tokenized before this step
 	tree = ne_chunk(event.pos_tagged)
-	entities = []
+	entities = set([])
 
 	people = tree.subtrees(lambda x: x.node == "PERSON")
 	for person in people:
-		entities.extend([leaf[0] for leaf in person.leaves()])
+		entities.add(" ".join([leaf[0] for leaf in person.leaves()]))
 
 	places = tree.subtrees(lambda x: x.node == "GPE")
 	for place in places:
-		entities.extend([leaf[0] for leaf in place.leaves()])
+		entities.add(" ".join([leaf[0] for leaf in place.leaves()]))
 
 	organizations = tree.subtrees(lambda x: x.node == "ORGANIZATION")
 	for org in organizations:
-		entities.extend([leaf[0] for leaf in org.leaves()])
+		entities.add(" ".join([leaf[0] for leaf in org.leaves()]))
 	
 	return entities
