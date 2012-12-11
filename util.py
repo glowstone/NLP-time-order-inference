@@ -9,18 +9,23 @@ from nltk.corpus import stopwords
 # Local Modules
 import config
 
-# Kept Temporarily
-COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as much as', 'as soon as', 'as though',
- 'because', 'before', 'even if', 'even though', 'how', 'if', 'in order that', 'inasmuch', 'lest', 'now that',
- 'provided', 'since', 'so that', 'than', 'that', 'though', 'till', 'unless', 'until', 'when', 'whenever', 'where',
- 'wherever', 'while']
 
+# Leading Clue Words
+###############################################################################
+# Chronological Leading Word
+CHRON_LEAD = ["later", "afterward", "next", "then", "later"]
+# Anti-Chronological Leading Word
+ACHRON_LEAD = ["previously", "beforehand", "earlier"]
+
+# Subordinating Conjunction Clue Words
+###############################################################################
 # A before B
-BEFORE_CONJS = ["before", "until", ""]
+BEFORE_CONJS = ["before", "until", "till", "til", "so that"]
 # A simultaneous with B
 DURING_CONJS = ["as", "during", "as long as", "when", "whenever", "while"]
 # A after B
 AFTER_CONJS = ["after", "now that", "as soon as", "since"]
+
 
 ENGLISH_STOPWORDS = stopwords.words("english")
 

@@ -17,8 +17,8 @@ class Sentence(object):
         self.parse_tree = None                   # Stanford Parse Tree
         self.pos_tagged = None                   # List of (word, Stanford Parse POS Tag) tuples
         self.entity_tagged = None                # NLTK tree.tree of entity tags
-        self.leading_words = []                        
-        self.subordinating_conjunctions = []            # Ordered list
+        self.leading_word_clues = []                        
+        self.conjunction_word_clues = []            # Ordered list
         self.events = []                                # Ordered list
 
     def pprint(self):
@@ -86,13 +86,42 @@ class TemporalAnalyzer(object):
         phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
         print 'phrase tree', phrase_tree
 
-        if phrase_tree:                    # Sentence is a 2 event sentence with an S-phrase 
+        # Extract phrase trees
+
+        if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
             index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
-            print index_tuples
-            (start, end) = index_tuples[0]
-            events = self.get_events_from_indices(sentence.parse_tree, start, end)
+            (start, end) = index_tuples[0]            # Take first set of indicies where subseq matches
+            event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
         else:
-            events = [sent.parse_tree]
+            event_phrase_trees = [sentence.parse_tree]
+
+        # Process phrase trees
+
+        if len(event_phrase_trees) == 1:
+            print 'event', event_phrase_trees[0].leaves()
+            phrase_tree = event_phrase_trees[0]
+            sentence.leading_word_clues = phrase_tree.leaves()[:1]   # Leading word of first Event phrase
+            sentence.conjunction_word_clues = []                     # No conjunction clue words if sentence only contains one Event
+
+        elif len(event_phrase_trees) == 2:
+            print 'event', event_phrase_trees[0].leaves()
+            # Which event occurred first??
+            first_phrase_tree = event_phrase_trees[0]
+            second_phrase_tree = event_phrase_trees[1]
+            # Leading word of first Event phrase
+            sentence.leading_word_clues = first_phrase_tree.leaves()[:1]     
+            # Longest subordinating conjunction has 3 words such as 'as soon as'  
+            sentence.conjunction_word_clues = second_phrase_tree.leaves()[:3]   
+            pass
+
+        else:
+            # System only considers sentences with one or two events in them.
+            return (False, [])
+
+        #temporary
+        return (True, [])
+
+        # Construct events
 
         for event in events:
             best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.30)
