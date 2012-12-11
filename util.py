@@ -187,14 +187,27 @@ def aux_phrase_subtree(tree, tag_list):
 # General Utility Functions
 ###############################################################################
 
-def multi_access(nested_list, indices):
+def nested_access(nested_list, indices):
 	"""
 	Recursive list multi-index access. 
 
-	Given for ex. multi_access(nested_list, [0,1,3]), returns result of nested_list[0][1]][3]
+	Given for ex. nested_access(nested_list, [0,1,3]), returns result of nested_list[0][1]][3]
 	"""
 	if len(indices) > 0:
-		return multi_access(nested_list[indices[0]], indices[1:])
+		return nested_access(nested_list[indices[0]], indices[1:])
 	else:
 		return nested_list
+
+def nested_pop(nested_list, indices):
+	"""
+	Recursive list multi-index popping. 
+
+	Given for ex. nested_pop(nested_list, [0,1,3]), returns will perform nested_list[0][1]].pop(3)
+	"""
+	if len(indices) > 1:
+		return nested_pop(nested_list[indices[0]], indices[1:])
+	else:
+		return nested_list.pop(indices[0])
+
+
 

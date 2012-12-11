@@ -13,7 +13,7 @@ import nltk
 
 class Sentence(object):
     def __init__(self, text):
-        self.text = text.rstrip()
+        self.text = text.rstrip(' .')            # Remove trailing whitespace and period
         self.parse_tree = None                   # Stanford Parse Tree
         self.pos_tagged = None                   # List of (word, Stanford Parse POS Tag) tuples
         self.entity_tagged = None                # NLTK tree.tree of entity tags
@@ -64,7 +64,7 @@ class TemporalAnalyzer(object):
             sentence_text = line.split("#")[0].strip()
             if len(sentence_text) > 0:
                 sentence = Sentence(sentence_text)
-                (valid, event_list) = self.parse_sentence(sentence)
+                (valid, event_list, msg) = self.parse_sentence(sentence)
                 if valid:
                     self.sentences.append(sentence)
                     self.all_events.extend(event_list)
@@ -75,9 +75,11 @@ class TemporalAnalyzer(object):
         Augments sentence with its Stanford Parse tree, POS tags from the Stanford Parser, and
         an the NLTK. Extracts Events from the sentence.
 
+        mutates sentence by adding data to its fields
+
         returns (Boolean of whether Sentence is valid, list of events found in the sentence)
         """
-        sentence.parse_tree = nltk.tree.ParentedTree(util.stanford_parse(sentence.text))
+        sentence.parse_tree = nltk.tree.Tree(util.stanford_parse(sentence.text))
         sentence.pos_tagged = sentence.parse_tree.pos()                       # Get POS tags from Stanford Parse Tree.
         sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
         # TODO entity tagging happens here and in Event.__init__
@@ -91,37 +93,41 @@ class TemporalAnalyzer(object):
         if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
             index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
             (start, end) = index_tuples[0]            # Take first set of indicies where subseq matches
-            
-            ordered_event_trees = self.retrieve_remaining_event(sentence.parse_tree, phrase_tree, start, end)
+            (success, ordered_event_trees) = self.retrieve_remaining_event(sentence.parse_tree, phrase_tree, start, end)
+            if not success:
+                return (False, [], "More than two Event phrases present in sentence")
             #event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
         else:
-            event_phrase_trees = [sentence.parse_tree]
+            ordered_event_trees = [sentence.parse_tree]
+
+
 
         # Process phrase trees
+        for event in ordered_event_trees:
+            print 'HERE', event
 
-        print ordered_event_trees
+        print sentence.parse_tree
 
-        if len(event_phrase_trees) == 1:
-            print 'event', event_phrase_trees[0].leaves()
-            phrase_tree = event_phrase_trees[0]
-            sentence.leading_word_clues = phrase_tree.leaves()[:1]   # Leading word of first Event phrase
+        if len(ordered_event_trees) == 1:
+            #print 'event', event_phrase_trees[0].leaves()
+            event_tree = ordered_event_trees[0]
+            sentence.leading_word_clues = event_tree.leaves()[:1]    # Leading word of first Event tree
             sentence.conjunction_word_clues = []                     # No conjunction clue words if sentence only contains one Event
 
-        elif len(event_phrase_trees) == 2:
-            print 'event', event_phrase_trees[0].leaves()
-            # Which event occurred first??
-            first_phrase_tree = event_phrase_trees[0]
-            second_phrase_tree = event_phrase_trees[1]
+        elif len(ordered_event_trees) == 2:
+            #print 'event', event_phrase_trees[0].leaves()
+            first_event_tree = ordered_event_trees[0]
+            second_event_tree = ordered_event_trees[1]
             # Leading word of first Event phrase
-            sentence.leading_word_clues = first_phrase_tree.leaves()[:1]     
+            sentence.leading_word_clues = first_event_tree.leaves()[:1]     
             # Longest subordinating conjunction has 3 words such as 'as soon as'  
-            sentence.conjunction_word_clues = second_phrase_tree.leaves()[:3]   
+            sentence.conjunction_word_clues = second_event_tree.leaves()[:3]   
         else:
             # System only considers sentences with one or two events in them.
-            return (False, [])
+            return (False, [], "More than two Event phrases (should have caught this earlier).")
 
         #temporary
-        return (True, [])
+        return (True, [], None)
 
         # Construct events
 
@@ -139,64 +145,28 @@ class TemporalAnalyzer(object):
         return (True, [e])
 
     def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
-        known_event_position = None        # Known Event is either the oth or 1th Event in the sentence parse tree.
-        if known_event_start == 0:
-            known_event_position = 0
-        elif known_event_end == len(tree.leaves()):
-            known_event_position = 1
+        """
+        Given parse tree, a known event subtree, and the start/end indices of the known event in the tree
+        Splits the tree into two subtrees corresponding to the two events.
+
+        Does NOT mutate the tree or known_event
+
+        returns: ordered list [Tree, Tree] (one of which will be known_event)
+        """
+        # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
+        # Ex. If (0, 1, 2) returned by function, the subtree spanning those leaves would be tree[0][1][2]
+        
+        indices = tree.treeposition_spanning_leaves(known_event_start, known_event_end)
+        tree_copy = tree.copy(True)                      # Deep copy the parse tree             
+        util.nested_pop(tree_copy, indices)              # Mutate the copied parse tree
+
+        if known_event_start == 0:                       # Known event should be first
+            return (True, [known_event, tree_copy])
+        elif known_event_end == len(tree.leaves()):      # Known event should be last of the two
+            return (True, [tree_copy, known_event])
         else:
             return (False, "Three or more events in a sentence are not currently handled")
 
-        print known_event_position
-
-        # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
-        # For example, if treeposition_spanning_leaves returns (0, 1, 2), the subtree spanning those leaves
-        # would be tree[0][1][2]
-        
-        indices = tree.treeposition_spanning_leaves(start, end)
-        print indicies
-
-        # tree_copy will become the 
-        tree_copy = tree                     
-        # TODO, this is an alias, not a proper copy
-
-        to_be_deleted = util.multi_access(tree_copy, indicies)
-        del to_be_deleted
-
-        if known_event_position == 0:
-            return (True, [known_event, tree_copy])
-        else:
-            return (True, [tree_copy, known_event])    
-
-
-    def get_events_from_indices(self, tree, start, end):
-        """
-        Given a tree and the start/end indices of an event within that tree, returns both the event specified by start
-        and end AND the event that falls outside that region. Basically, splits the tree up into two subtrees
-        corresponding to the two events.
-
-        tree is and instance of ParentedTree
-        start and end are ints
-
-        returns: a list of [ParentedTree, ParentedTree]
-        """
-        # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
-        # For example, if treeposition_spanning_leaves returns (0, 1, 2), then you need to take the 0 index
-        # of tree, then the 1 index of that subtree, then the 2 index of that sub-subtree to get the tree 
-        # spanning those leaves
-        indices = tree.treeposition_spanning_leaves(start, end)
-
-        subtree = tree
-        for i in indices:
-            subtree = subtree[i]
-
-        tree_copy = tree
-        # Now do almost the same thing, but delete the subtree from the main tree
-        for i in indices[:-1]:
-            tree_copy = tree_copy[i]
-        del tree_copy[indices[-1]]
-
-        return [tree, subtree]
 
     def dump_data(self):
         for sent in self.sentences:
