@@ -84,6 +84,17 @@ class TemporalAnalyzer(object):
         sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
         # TODO entity tagging happens here and in Event.__init__
 
+        (success, ordered_event_trees) = self.extract_events()
+        if not success:
+            return (False, [], "Events could not be extracted from this sentence.")
+        self.construct_events()
+        self.ordering_analysis()
+        self.temporal_analysis()
+
+
+
+        self.extract_events()
+
         # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
         phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
         print 'phrase tree', phrase_tree
@@ -166,29 +177,20 @@ class TemporalAnalyzer(object):
         else:
             return (False, "Three or more events in a sentence are not currently handled")
 
+    self.construct_events()
+        self.ordering_analysis()
+        self.temporal_analysis()
 
-    def dump_data(self):
-        for sent in self.sentences:
-            print sent
-            
-    def process_text(filename=None):
+    def construct_events(self):
+        pass
+
+    def ordering_analysis(self):
+        pass
+
+    def temporal_analysis(self):
         """
-        Takes in the input file and builds the DataStructure to support queries
-        Assumptions:"""
-        pass
-
-    def get_events():
+        Run timex on the sentence
         """
-        Returns an unordered array of all events found in the text"""
-        pass
-
-
-    def estimate_time(event_id):
-        """Returns the best available information about Event event_id"""
-        pass
-
-    def estimate_order(event_id):
-        """Returns the estimate of the order of the Event with event_id"""
         pass
 
     def shelve_processed_data(self, filename=None):
@@ -207,6 +209,34 @@ class TemporalAnalyzer(object):
     def __repr__(self):
         return '<TemporalAnalyzer %s>' % self.sentences
 
+    # Setters/Getters
+    ###########################################################################
+
+    def get_sentences(self):
+        """
+        returns ordered list of all valid, parsable sentences in the processed text(s).
+        """
+        return self.sentences
+
+    def get_events(self):
+        """
+        returns ordered list of all events found in valid, parsable sentences in the processed text(s).
+        """
+        return self.all_events
+
+    def get_timestore(self):
+        """
+        returns a queryable TimeDataStore which contains temporal information about Events from the processed text(s).
+        """
+        return self.time_data_store
+
+    def get_orderstore(self):
+        """
+        returns a queryable OrderDataStore which contains ordering information about Events from the processed text(s).
+        """
+        return self.order_data_store
+
+
 
 def bootstrap(mode_args):
     if mode_args['bootstrap_mode'] == 'input':
@@ -214,12 +244,10 @@ def bootstrap(mode_args):
         text_filename = mode_args['bootstrap_data']
         analyzer= TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
-        print analyzer
     elif mode_args['bootstrap_mode'] == 'load':
         shelve_filename = mode_args['bootstrap_data']
         d = shelve.open(config.PATH_TO_SHELVE + shelve_filename)
         analyzer = d['temporal_analyzer']
-        print analyzer
     else:
         error("Invalid Bootstrapping Mode")
 
