@@ -82,7 +82,7 @@ class TemporalAnalyzer(object):
         sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
         # TODO entity tagging happens here and in Event.__init__
 
-        # Find all SBAR and S phrases and choose the one closest to root (but not the root itself) to divide the sentence.
+        # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
         phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
         print 'phrase tree', phrase_tree
 
@@ -91,11 +91,15 @@ class TemporalAnalyzer(object):
         if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
             index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
             (start, end) = index_tuples[0]            # Take first set of indicies where subseq matches
-            event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
+            
+            ordered_event_trees = self.retrieve_remaining_event(sentence.parse_tree, phrase_tree, start, end)
+            #event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
         else:
             event_phrase_trees = [sentence.parse_tree]
 
         # Process phrase trees
+
+        print ordered_event_trees
 
         if len(event_phrase_trees) == 1:
             print 'event', event_phrase_trees[0].leaves()
@@ -112,8 +116,6 @@ class TemporalAnalyzer(object):
             sentence.leading_word_clues = first_phrase_tree.leaves()[:1]     
             # Longest subordinating conjunction has 3 words such as 'as soon as'  
             sentence.conjunction_word_clues = second_phrase_tree.leaves()[:3]   
-            pass
-
         else:
             # System only considers sentences with one or two events in them.
             return (False, [])
@@ -135,7 +137,36 @@ class TemporalAnalyzer(object):
             sentence.events.append(e)
             self.all_events.append(e)
         return (True, [e])
-    
+
+    def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
+        known_event_position = None        # Known Event is either the oth or 1th Event in the sentence parse tree.
+        if known_event_start == 0:
+            known_event_position = 0
+        elif known_event_end == len(tree.leaves()):
+            known_event_position = 1
+        else:
+            return (False, "Three or more events in a sentence are not currently handled")
+
+        print known_event_position
+
+        # treeposition_spanning_leaves gives the indices of tree that give the subtree spanning those leaves.
+        # For example, if treeposition_spanning_leaves returns (0, 1, 2), the subtree spanning those leaves
+        # would be tree[0][1][2]
+        
+        indices = tree.treeposition_spanning_leaves(start, end)
+        print indicies
+
+        # tree_copy will become the 
+        tree_copy = tree                     
+        # TODO, this is an alias, not a proper copy
+
+        to_be_deleted = util.multi_access(tree_copy, indicies)
+        del to_be_deleted
+
+        if known_event_position == 0:
+            return (True, [known_event, tree_copy])
+        else:
+            return (True, [tree_copy, known_event])    
 
 
     def get_events_from_indices(self, tree, start, end):

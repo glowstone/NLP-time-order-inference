@@ -183,3 +183,18 @@ def aux_phrase_subtree(tree, tag_list):
 	print highest_subtree
 	return highest_subtree
 
+
+# General Utility Functions
+###############################################################################
+
+def multi_access(nested_list, indices):
+	"""
+	Recursive list multi-index access. 
+
+	Given for ex. multi_access(nested_list, [0,1,3]), returns result of nested_list[0][1]][3]
+	"""
+	if len(indices) > 0:
+		return multi_access(nested_list[indices[0]], indices[1:])
+	else:
+		return nested_list
+
