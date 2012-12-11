@@ -25,8 +25,11 @@ class Sentence(object):
         print "parse_tree", self.parse_tree
         print "pos_tagged", self.pos_tagged
         print "entity_tagged", self.entity_tagged
-        print "leading_words", self.leading_words
-        print "subordinating_conjunctions", self.subordinating_conjunctions
+        print "leading_word_clues", self.leading_word_clues
+        print "conjunction_word_clues", self.conjunction_word_clues
+        for event in self.events:
+            print "Event:"
+            print event
 
     def __repr__(self):
         return '<Sentence %s>' % self.text[:20]         # Show only first 20 characters
@@ -47,7 +50,7 @@ class TemporalAnalyzer(object):
         self.time_data_store = TimeDataStore()
         self.order_data_store = OrderDataStore()
         self.sentences = []                           # All valid sentences
-        self.all_events = []                          # All valid events
+        self.events = []                              # All valid events
         
         # Initialization
         self.parse_textual_data(filename)
@@ -67,7 +70,7 @@ class TemporalAnalyzer(object):
                 (valid, event_list, msg) = self.parse_sentence(sentence)
                 if valid:
                     self.sentences.append(sentence)
-                    self.all_events.extend(event_list)
+                    self.events.extend(event_list)
 
 
     def parse_sentence(self, sentence):
@@ -84,74 +87,19 @@ class TemporalAnalyzer(object):
         sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
         # TODO entity tagging happens here and in Event.__init__
 
-        (success, ordered_event_trees) = self.extract_events()
+        (success, ordered_event_trees) = self.extract_events(sentence)
         if not success:
             return (False, [], "Events could not be extracted from this sentence.")
-        self.construct_events()
-        self.ordering_analysis()
-        self.temporal_analysis()
-
-
-
-        self.extract_events()
-
-        # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
-        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
-        print 'phrase tree', phrase_tree
-
-        # Extract phrase trees
-
-        if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
-            index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
-            (start, end) = index_tuples[0]            # Take first set of indicies where subseq matches
-            (success, ordered_event_trees) = self.retrieve_remaining_event(sentence.parse_tree, phrase_tree, start, end)
-            if not success:
-                return (False, [], "More than two Event phrases present in sentence")
-            #event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
-        else:
-            ordered_event_trees = [sentence.parse_tree]
-
-
-
-        # Process phrase trees
-        for event in ordered_event_trees:
-            print 'HERE', event
-
-        print sentence.parse_tree
-
-        if len(ordered_event_trees) == 1:
-            #print 'event', event_phrase_trees[0].leaves()
-            event_tree = ordered_event_trees[0]
-            sentence.leading_word_clues = event_tree.leaves()[:1]    # Leading word of first Event tree
-            sentence.conjunction_word_clues = []                     # No conjunction clue words if sentence only contains one Event
-
-        elif len(ordered_event_trees) == 2:
-            #print 'event', event_phrase_trees[0].leaves()
-            first_event_tree = ordered_event_trees[0]
-            second_event_tree = ordered_event_trees[1]
-            # Leading word of first Event phrase
-            sentence.leading_word_clues = first_event_tree.leaves()[:1]     
-            # Longest subordinating conjunction has 3 words such as 'as soon as'  
-            sentence.conjunction_word_clues = second_event_tree.leaves()[:3]   
-        else:
-            # System only considers sentences with one or two events in them.
-            return (False, [], "More than two Event phrases (should have caught this earlier).")
+        self.construct_events(sentence, ordered_event_trees)           
+        self.ordering_analysis(sentence)
+        self.temporal_analysis(sentence)
 
         #temporary
         return (True, [], None)
 
         # Construct events
 
-        for event in events:
-            best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.30)
-            if best_match:
-                print "REFERENCE EVENT!"
-                e = ReferenceEvent(event, best_match)
-                print "%s refers to %s" % (e, best_match)
-            else:
-                e = Event(event)
-            sentence.events.append(e)
-            self.all_events.append(e)
+        
         return (True, [e])
 
     def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
@@ -177,21 +125,103 @@ class TemporalAnalyzer(object):
         else:
             return (False, "Three or more events in a sentence are not currently handled")
 
-    self.construct_events()
-        self.ordering_analysis()
-        self.temporal_analysis()
 
-    def construct_events(self):
-        pass
-
-    def ordering_analysis(self):
-        pass
-
-    def temporal_analysis(self):
+    def extract_events(self, sentence):
         """
-        Run timex on the sentence
+        Seeks to find the one or two Events contained inside a sentence by searching over 'S' and 'SBAR'
+        subtrees and constructing two parse trees for the two Events
+
+        Does NOT mutate sentence, or its properties such as sentence.parse_tree
+
+        returns (boolean of whether sentence was valid, [ordered list of the event phrase trees as they occur in the sentence])
         """
+        # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
+        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
+
+        if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
+            index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
+            (start, end) = index_tuples[0]            # Take first set of indicies where subseq matches
+            (success, ordered_event_trees) = self.retrieve_remaining_event(sentence.parse_tree, phrase_tree, start, end)
+            if not success:
+                return (False, [])
+            #event_phrase_trees = self.get_events_from_indices(sentence.parse_tree, start, end)
+        else:
+            ordered_event_trees = [sentence.parse_tree]
+
+        return (True, ordered_event_trees)
+
+
+    def construct_events(self, sentence, event_tree_list):
+        """
+        Creates Event or ReferenceEvent instances from each of the event trees
+
+        DOES mutate sentence to fill out the sentence.events list
+
+        returns [list of event instances]
+        """
+        event_instances = []
+        for event_tree in event_tree_list:
+            prior_event_matched = util.best_event_match(self.events, " ".join(event_tree.leaves()), 0.30)
+            if prior_event_matched:
+                e = ReferenceEvent(event_tree, prior_event_matched)
+                #print "%s refers to %s" % (e, best_match)
+            else:
+                e = Event(event_tree)
+            event_instances.append(e)
+        sentence.events = event_instances
+        return event_instances
+
+    def ordering_analysis(self, sentence):
+        """
+        Takes a Sentence with its sentence.events filled out with events in order. Identifies leading
+        and subordinating conjunction clue words that give ordering information. 
+        Infers an ordering of the Events and updates the OrderDataStore.
+
+        Mutates sentence.leading_word_clues, sentence.conjunction_word_clues, OrderDataStore
+
+        returns None
+        """
+        ordered_events = sentence.events
+
+        if len(ordered_events) == 1:
+            event = ordered_events[0]
+            sentence.leading_word_clues = event.parse_tree.leaves()[:1]      # Leading word
+            sentence.conjunction_word_clues = []                             # No conjunction clue words
+        
+            sentence.pprint()
+
+        elif len(ordered_events) == 2:
+            first_event = ordered_events[0]
+            second_event = ordered_events[1]
+            sentence.leading_word_clues = first_event.parse_tree.leaves()[:1]   # Leading word    
+            # Longest subordinating conjunction has 3 words such as 'as soon as'  
+            sentence.conjunction_word_clues = second_event.parse_tree.leaves()[:3] 
+
+            sentence.pprint()
+
+        else:
+            # System only considers sentences with one or two events in them.
+            return (False, [], "More than two Event phrases (should have caught this earlier).")
+
+
+        #util.conj_infer_ordering(sentence, )
+
+        
+
+
+
+    def temporal_analysis(self, sentence):
+        """
+        Takes a Sentence with its sentence.events property populated. Analyzes Events to extract out
+        syntactic time information and updates the TimeDataStore.
+
+        Mutates TimeDataStore
+    
+        returns None
+        """
+
         pass
+
 
     def shelve_processed_data(self, filename=None):
         """
@@ -222,7 +252,7 @@ class TemporalAnalyzer(object):
         """
         returns ordered list of all events found in valid, parsable sentences in the processed text(s).
         """
-        return self.all_events
+        return self.events
 
     def get_timestore(self):
         """

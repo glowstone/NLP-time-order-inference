@@ -6,8 +6,8 @@ from nltk.tree import ParentedTree
 
 class AbstractEvent(object):
     def __init__(self, tree):
-        self.tree = tree
         self.text = " ".join(tree.leaves())
+        self.parse_tree = tree
         self.pos_tagged = tree.pos()
         self.entities = extract_entities(self)
 
@@ -35,9 +35,6 @@ class ReferenceEvent(AbstractEvent):
         self.reference_times = []               # Estimate of time of the referred to Event
         sync_times()
 
-    def __repr__(self):
-        return '<ReferenceEvent %s>' % self.text
-
     def add_reference(self, event):
         self.reference = event
 
@@ -64,6 +61,9 @@ class ReferenceEvent(AbstractEvent):
                 self.best_time = self.reference.best_time
             else:
                 self.best_time = None
+
+    def __repr__(self):
+        return '<ReferenceEvent %s>' % self.text
 
 
 # Just for testing
