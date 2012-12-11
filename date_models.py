@@ -1,3 +1,7 @@
+MONTH_TO_STRING = ['No month', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+				   'Novermber', 'December']
+
+
 class Date():
 	def __init__(self, year=None, month=None, day=None, hour=None, minute=None):
 		self.year = year
@@ -43,3 +47,52 @@ class Date():
 
 	def __repr__(self):
 		return "Date %s %s %s %s %s" % (self.year, self.month, self.day, self.hour, self.minute)
+
+	def __str__(self):
+		string = ""
+		if self.month is not None:
+			string += MONTH_TO_STRING[self.month]
+			if self.day is not None:
+				string += " "
+				string += str(self.day)
+			if self.year is not None:
+				string += ", "
+				string += str(self.year)
+			if self.hour is not None:
+				string += " at "
+				string += str(self.hour)
+				if self.minute is not None:
+					string += ":%2d" % self.minute
+				else:
+					string += ":00"
+		else:
+			if self.year is not None:
+				string = "Some time in %s" % self.year
+				if self.hour is not None:
+					string += " at %s" % self.hour
+					if self.minute is not None:
+						string += ":%2d" % self.minute
+					else:
+						string += ":00"
+		if string == "":
+			string = "Not really sure"
+		return string
+
+	def precision(self):
+		"""
+		Returns a measure of how precise this Date object is, allowing Dates to be sorted on their precision.
+		The reason for doing it in powers of 10 is that it was an easy way to show that some values add more
+		to the precision than others, rather than just returning the number of fields that aren't None.
+		"""
+		value = 0
+		if self.year is not None:
+			value += 100000
+		if self.month is not None:
+			value +=  10000
+		if self.day is not None:
+			value +=   1000
+		if self.hour is not None:
+			value +=    100
+		if self.minute is not None:
+			value +=     10
+		return value

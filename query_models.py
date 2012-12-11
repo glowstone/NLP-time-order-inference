@@ -46,7 +46,7 @@ class TimeQuery(Query):
             times = event.absolute_times
             if not times:
                 return "No time estimate for this event"
-            return event.absolute_times
+            return str(event.best_time)
         else:
             return None
 

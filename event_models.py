@@ -19,6 +19,10 @@ class Event(AbstractEvent):
     def __init__(self, tree):
         super(Event, self).__init__(tree)
         self.absolute_times = find_temporals(self.text)
+        if len(self.absolute_times) > 0:
+            self.best_time = sorted(self.absolute_times, key=lambda x: x.precision(), reverse=True)[0]
+        else:
+            self.best_time = None
 
     def __repr__(self):
         return '<Event %s>' % self.text

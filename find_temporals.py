@@ -1,6 +1,3 @@
-# Code for tagging temporal expressions in text
-# For details of the TIMEX format, see http://timex2.mitre.org/
-
 import re
 from datetime import datetime
 from dateutil import parser
