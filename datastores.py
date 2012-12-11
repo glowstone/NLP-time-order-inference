@@ -50,5 +50,21 @@ class OrderDataStore(object):
         else:
             return  "not enough info"
 
+    def depth_first_search(self, event_a, event_b):
+        """
+        The most basic DFS implementation I could think of. Returns True if there's some path that says event_a is 
+        before event_b, False otherwise.
+
+        event_a and event_b are instances of AbstractEvent
+
+        returns a boolean
+        """
+        if event_a == event_b:
+            return True
+        for event in self.order_table[event_a]:
+            if self.depth_first_search(event, event_b):
+                return True
+        return False
+
     def __repr__(self):
         return str(self.order_table)
