@@ -1,12 +1,7 @@
-# Code for tagging temporal expressions in text
-# For details of the TIMEX format, see http://timex2.mitre.org/
-
 import re
-import string
-import os
-import sys
 from datetime import datetime
 from dateutil import parser
+from date_models import Date
 
 
 # Predefined strings.
@@ -140,26 +135,3 @@ def parse_datetime(date_string):
 		return date
 	except ValueError:
 		return None
-
-
-class Date():
-	def __init__(self, year=None, month=None, day=None, hour=None, minute=None):
-		self.year = year
-		self.month = month
-		self.day = day
-		self.hour = hour
-		self.minute = minute
-
-	def __lt__(self, other):
-		return [self.year, self.month, self.day, self.hour, self.minute] < \
-		[other.year, other.month, other.day, other.hour, other.minute]		# TODO does this work?
-
-	def __gt__(self, other):
-		return other.__lt__(self)
-
-	def __repr__(self):
-		return "Date %s %s %s %s %s" % (self.year, self.month, self.day, self.hour, self.minute)
-
-
-if __name__ == '__main__':
-	print find_temporals("John went to the store at 7:00pm yesterday .")

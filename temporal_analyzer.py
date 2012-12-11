@@ -135,8 +135,7 @@ class TemporalAnalyzer(object):
             best_match = util.best_event_match(self.all_events, " ".join(event.leaves()), 0.30)
             if best_match:
                 print "REFERENCE EVENT!"
-                e = ReferenceEvent(event)
-                e.add_reference(best_match)
+                e = ReferenceEvent(event, best_match)
                 print "%s refers to %s" % (e, best_match)
             else:
                 e = Event(event)

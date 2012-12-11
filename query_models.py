@@ -46,7 +46,7 @@ class TimeQuery(Query):
             times = event.absolute_times
             if not times:
                 return "No time estimate for this event"
-            return event.absolute_times
+            return str(event.best_time)
         else:
             return None
 
@@ -66,6 +66,7 @@ class OrderQuery(Query):
         print event2
 
         if event1 and event2:
+            # If we can do the comparison based on absolute times, then do that
             if event1.absolute_times and event2.absolute_times:
                 if event1.absolute_times[0] > event2.absolute_times[0]:
                     return "%s happened before %s" % (event2, event1)
