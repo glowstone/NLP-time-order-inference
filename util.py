@@ -149,7 +149,7 @@ def infer_ordering(leading, conjunction, first_event, second_event):
 	Infer whether the first or second Event occurred first using leading word and conjunction word
 	observations
 
-	returns 
+	returns Boolean of whether event ordering should be chronological
 	"""
 	lead_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_LEAD, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_LEAD)]
 	conj_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_CONJS, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_CONJS)]
