@@ -49,8 +49,8 @@ def event_compare(event, text):
 	# Filter out stop words
 	text2 = filter(lambda x: x not in ENGLISH_STOPWORDS, event.text.lower().split())
 
-	# base_score is the levenshtein distance between text and event.text, divided by the number of words in event.text
-	base_score = len(text2) - edit_distance(text2, text)
+	base_score = edit_distance(text2, text)
+	base_score = max((len(text) - base_score, len(text2) - base_score))
 	# base_score = sum([w in text2 for w in text])
 	# entity_match_score is the percentage of entities in event.entities that occur in the text
 	entity_match_score = sum([entity.lower() in text for entity in event.entities])
