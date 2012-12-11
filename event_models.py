@@ -33,7 +33,7 @@ class ReferenceEvent(AbstractEvent):
         super(ReferenceEvent, self).__init__(tree)
         self.reference = event
         self.reference_times = []               # Estimate of time of the referred to Event
-        sync_times()
+        self.sync_times()         
 
     def add_reference(self, event):
         self.reference = event

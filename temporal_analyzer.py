@@ -1,14 +1,15 @@
 
-import sys
-import os
-import find_temporals
-import getopt
+# System Modules
+import sys, os, getopt
+import nltk
+import shelve
+
+# Local Modules
 import util
 import config
-import shelve
+import find_temporals
 from query_models import QueryCollection, Query, TimeQuery, OrderQuery
 from event_models import AbstractEvent, Event, ReferenceEvent
-import nltk
 
 
 class Sentence(object):
@@ -94,13 +95,8 @@ class TemporalAnalyzer(object):
         self.ordering_analysis(sentence)
         self.temporal_analysis(sentence)
 
-        #temporary
-        return (True, [], None)
+        return (True, sentence.events, None)
 
-        # Construct events
-
-        
-        return (True, [e])
 
     def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
         """
@@ -195,13 +191,15 @@ class TemporalAnalyzer(object):
             second_event = ordered_events[1]
             sentence.leading_word_clues = first_event.parse_tree.leaves()[:1]   # Leading word    
             # Longest subordinating conjunction has 3 words such as 'as soon as'  
-            sentence.conjunction_word_clues = second_event.parse_tree.leaves()[:3] 
+            sentence.conjunction_word_clues = second_event.parse_tree.leaves()[:3]
+
+            (leading, conjunction) = (sentence.leading_word_clues, sentence.conjunction_word_clues) 
+            util.infer_ordering(leading, conjunction, first_event, second_event)
 
             sentence.pprint()
 
         else:
-            # System only considers sentences with one or two events in them.
-            return (False, [], "More than two Event phrases (should have caught this earlier).")
+            print "More than two Event phrases (should have caught this earlier)!!"
 
 
         #util.conj_infer_ordering(sentence, )

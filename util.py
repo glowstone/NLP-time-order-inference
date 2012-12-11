@@ -160,17 +160,47 @@ def extract_entities(event):
 	
 	return entities
 
-
-def subsequence_search(subseq, sequence):
+def infer_ordering(leading, conjunction, first_event, second_event):
 	"""
-	Performs naive subsequence searching.
+	Infer whether the first or second Event occurred first using leading word and conjunction word
+	observations
 
-	Input list subseq and sequence 
-
-	returns a list of (start, end) tuples of indices such that sequence[start:end] == subseq
+	returns 
 	"""
-	index_tuples = filter(lambda (start, end): sequence[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sequence) - len(subseq) + 1)])
-	return index_tuples
+	print "GOT TO inger_ordering!!!!"
+	leading_winner = max([score_ordering_match(leading, catalog) for catalog in [ACHRON_LEAD, CHRON_LEAD]])
+	conjunction_winner = max([score_ordering_match(conjunction, catalog) for catalog in [BEFORE_CONJS, AFTER_CONJS]])
+	print leading_winner
+	print conjunction_winner
+
+
+def score_ordering_match(observed, catalog):
+	"""
+	Assign a score to how closely observed list matches words in catalog.
+
+	observed is list of observed words such as ['now', 'that']
+	"""
+	def exact_match(word_a, word_b):
+		if word_a == word_b:
+			return 1
+		else:
+			return 0
+	score = 0
+	for catalog_item in catalog:
+		# Assume for now that the catalog item is one word to be matched. TODO fix.
+		for observed_item in observed:
+			print catalog_item
+			print observed_item
+			if catalog_item.lower() == observed_item.lower():
+				score += 1
+	return (score, catalog)
+
+		#score = sum(exact_match(observed_item, catalog_item) for observed_item in observed)
+
+	#return score
+
+	
+
 
 
 def aux_phrase_subtree(tree, tag_list):
@@ -187,6 +217,18 @@ def aux_phrase_subtree(tree, tag_list):
 # General Utility Functions
 ###############################################################################
 
+def subsequence_search(subseq, sequence):
+	"""
+	Performs naive subsequence searching.
+
+	Input list subseq and sequence 
+
+	returns a list of (start, end) tuples of indices such that sequence[start:end] == subseq
+	"""
+	index_tuples = filter(lambda (start, end): sequence[start:end] == subseq, [(start,start+len(subseq)) for start in range(len(sequence) - len(subseq) + 1)])
+	return index_tuples
+
+
 def nested_access(nested_list, indices):
 	"""
 	Recursive list multi-index access. 
@@ -197,6 +239,7 @@ def nested_access(nested_list, indices):
 		return nested_access(nested_list[indices[0]], indices[1:])
 	else:
 		return nested_list
+
 
 def nested_pop(nested_list, indices):
 	"""
