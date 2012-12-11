@@ -45,7 +45,7 @@ class OrderDataStore(object):
             return "conflicting"
         elif a_before_b:
             return "before"
-        elif b_after_a:
+        elif b_before_a:
             return "after"
         else:
             return  "not enough info"
