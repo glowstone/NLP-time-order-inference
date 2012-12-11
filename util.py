@@ -6,6 +6,9 @@ from nltk.metrics.distance import edit_distance
 from nltk import pos_tag, word_tokenize, ne_chunk
 from nltk.corpus import stopwords
 
+# Local Modules
+import config
+
 # Kept Temporarily
 COORD_CONJS = ["'til'", 'after', 'although', 'as', 'as if', 'as long as', 'as much as', 'as soon as', 'as though',
  'because', 'before', 'even if', 'even though', 'how', 'if', 'in order that', 'inasmuch', 'lest', 'now that',
@@ -34,8 +37,7 @@ def entity_tag_sentence(sentence):
 	return ne_chunk(sentence)
 
 
-
-def get_parse(sentence):
+def stanford_parse(sentence):
 	"""
 	Make a POST request to the stanford parser and extract the parse information from the webpage.
 
@@ -47,7 +49,7 @@ def get_parse(sentence):
 
 	values = {'query': sentence}
 	data = urllib.urlencode(values)
-	request = urllib2.Request(url, data, {})
+	request = urllib2.Request(config.STANFORD_PARSE_URL, data, {})
 
 	response = urllib2.urlopen(request)
 	htmlSource = response.read()
@@ -157,7 +159,7 @@ def extract_entities(event):
 def subsequence_search(subseq, sequence):
 	"""
 	Performs naive subsequence searching.
-	
+
 	Input list subseq and sequence 
 
 	returns a list of (start, end) tuples of indices such that sequence[start:end] == subseq
@@ -166,12 +168,13 @@ def subsequence_search(subseq, sequence):
 	return index_tuples
 
 
-def secondary_event_subtree(tree, tag_list):
+def aux_phrase_subtree(tree, tag_list):
 	"""
 	Searches over all subtrees in the given tree that have a root node with a tag in tag_list
 
 	returns subtree with the greatest height that is not the original tree
 	"""
-	highest_subtree = max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list) if subtree != tree])[1]
+	highest_subtree = max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list) if subtree != tree[0]])[1]
+	print highest_subtree
 	return highest_subtree
 

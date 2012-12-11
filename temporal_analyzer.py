@@ -4,33 +4,33 @@ import os
 import find_temporals
 import getopt
 import util
-from hack import get_parse
 import config
 import shelve
 from query_models import QueryCollection, Query, TimeQuery, OrderQuery
 from event_models import AbstractEvent, Event, ReferenceEvent
 import nltk
 
-# Constants
-
-
 
 class Sentence(object):
     def __init__(self, text):
         self.text = text.rstrip()
-        self.entity_tagged = None
-        self.parse_tree = None
-        self.pos_tagged = None
-        self.leading_words = []                         
+        self.parse_tree = None                   # Stanford Parse Tree
+        self.pos_tagged = None                   # List of (word, Stanford Parse POS Tag) tuples
+        self.entity_tagged = None                # NLTK tree.tree of entity tags
+        self.leading_words = []                        
         self.subordinating_conjunctions = []            # Ordered list
         self.events = []                                # Ordered list
 
     def pprint(self):
-        print self.entity_tagged
-        print self.parse_tree
+        print "parse_tree", self.parse_tree
+        print "pos_tagged", self.pos_tagged
+        print "entity_tagged", self.entity_tagged
+        print "leading_words", self.leading_words
+        print "subordinating_conjunctions", self.subordinating_conjunctions
 
     def __repr__(self):
-        return '<Sentence %s>' % self.text[:20]
+        return '<Sentence %s>' % self.text[:20]         # Show only first 20 characters
+
 
 class TimeDataStore(object):
     def __init__(self):
@@ -41,47 +41,56 @@ class OrderDataStore(object):
         self.order_table = {}
 
 
-        
 class TemporalAnalyzer(object):
     def __init__(self, filename):
-        self.filename = filename
-        self.sentences = []
+        self.filename = filename                    
         self.time_data_store = TimeDataStore()
         self.order_data_store = OrderDataStore()
+        self.sentences = []                           # All valid sentences
+        self.all_events = []                          # All valid events
+        
         # Initialization
-        self.load_textual_data(filename)
-        self.all_events = []                  # Copy of all seen Events
-        for sentence in self.sentences:
-            self.study_tree(sentence)
+        self.parse_textual_data(filename)
 
-    def load_textual_data(self, filename):
+    def parse_textual_data(self, filename):
+        """
+        Reads given filename containing sentences, with optional comments
+
+        returns None
+        """
         f = open(filename, 'r')
 
-        for sent in self.sentences:
-            sent.parse_tree = nltk.tree.ParentedTree(get_parse(sent.text))
-            sent.pos_tagged = sent.parse_tree.pos()
-            sent.entity_tagged = util.entity_tag_sentence(sent.pos_tagged)  # TODO entity tagging happens here and in Event.__init__
+        for line in f:
+            sentence_text = line.split("#")[0].strip()
+            if len(sentence_text) > 0:
+                sentence = Sentence(sentence_text)
+                (valid, event_list) = self.parse_sentence(sentence)
+                if valid:
+                    self.sentences.append(sentence)
+                    self.all_events.extend(event_list)
 
-            # if ok:
 
-            #     self.sentences.append(sentence)
-            #     self.all_events.append(??)
-
-    def analyze(self, sent):
+    def parse_sentence(self, sentence):
         """
-        return True/False
-        """
-        sentence_tree = sent.parse_tree
-       
-        # Find all SBAR and S phrases and choose the one closest to root (greatest height) to divide the sentence
-        secondary_event_tree = util.secondary_event_subtree(sentence_tree, ['S', 'SBAR'])
-        print secondary_event_tree
+        Augments sentence with its Stanford Parse tree, POS tags from the Stanford Parser, and
+        an the NLTK. Extracts Events from the sentence.
 
-        if secondary_event_tree:
-            index_tuples = util.subsequence_search(secondary_event_tree.leaves(), sentence_tree.leaves())
+        returns (Boolean of whether Sentence is valid, list of events found in the sentence)
+        """
+        sentence.parse_tree = nltk.tree.ParentedTree(util.stanford_parse(sentence.text))
+        sentence.pos_tagged = sentence.parse_tree.pos()                       # Get POS tags from Stanford Parse Tree.
+        sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
+        # TODO entity tagging happens here and in Event.__init__
+
+        # Find all SBAR and S phrases and choose the one closest to root (but not the root itself) to divide the sentence.
+        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
+        print 'phrase tree', phrase_tree
+
+        if phrase_tree:                    # Sentence is a 2 event sentence with an S-phrase 
+            index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
             print index_tuples
             (start, end) = index_tuples[0]
-            events = self.get_events_from_indices(tree, start, end)
+            events = self.get_events_from_indices(sentence.parse_tree, start, end)
         else:
             events = [sent.parse_tree]
 
@@ -94,8 +103,9 @@ class TemporalAnalyzer(object):
                 print "%s refers to %s" % (e, best_match)
             else:
                 e = Event(event)
-            sent.events.append(e)
+            sentence.events.append(e)
             self.all_events.append(e)
+        return (True, [e])
     
 
 
@@ -238,5 +248,5 @@ if __name__ == "__main__":
             mode_args['verbose_mode'] = True
 
     bootstrap(mode_args)
-    #analyze(mode_args)
+    analyze(mode_args)
     
