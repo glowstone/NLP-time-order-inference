@@ -5,7 +5,9 @@ text and extract the significant actions performed by people or organizations (i
 and infer a temporal ordering of those actions. A system with these capabilities would be useful 
 for answering queries about event ordering and for summarizing large texts.
 We plan to build a system that will recognize and tag events in text and construct a 
-representation of the time information related to those events. The types of events our system 
+representation of the time information related to those events. 
+
+The types of events our system 
 will focus on recognizing are actions performed by people or organizations. We will identify 
 events using part of speech tagging, entity tagging, and by filtering out extraneous words. We 
 will then use entity tagging to identify absolute time entities (ex. Tuesday) and relative time 
