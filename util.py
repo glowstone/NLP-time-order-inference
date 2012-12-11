@@ -8,23 +8,7 @@ from nltk.corpus import stopwords
 
 # Local Modules
 import config
-
-
-# Leading Clue Words
-###############################################################################
-# Chronological Leading Word
-CHRON_LEAD = ["later", "afterward", "next", "then", "later"]
-# Anti-Chronological Leading Word
-ACHRON_LEAD = ["previously", "beforehand", "earlier"]
-
-# Subordinating Conjunction Clue Words
-###############################################################################
-# A before B
-BEFORE_CONJS = ["before", "until", "till", "til", "so that"]
-# A simultaneous with B
-DURING_CONJS = ["as", "during", "as long as", "when", "whenever", "while"]
-# A after B
-AFTER_CONJS = ["after", "now that", "as soon as", "since"]
+import catalogs
 
 
 ENGLISH_STOPWORDS = stopwords.words("english")
@@ -167,11 +151,16 @@ def infer_ordering(leading, conjunction, first_event, second_event):
 
 	returns 
 	"""
-	print "GOT TO inger_ordering!!!!"
-	leading_winner = max([score_ordering_match(leading, catalog) for catalog in [ACHRON_LEAD, CHRON_LEAD]])
-	conjunction_winner = max([score_ordering_match(conjunction, catalog) for catalog in [BEFORE_CONJS, AFTER_CONJS]])
-	print leading_winner
-	print conjunction_winner
+	lead_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_LEAD, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_LEAD)]
+	conj_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_CONJS, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_CONJS)]
+	
+	# Useful to see leading and conjunction conflicts for tweaking
+	leading_winner = max([score_ordering_match(leading, catalog) for catalog in lead_catalogs])
+	conjunction_winner = max([score_ordering_match(conjunction, catalog) for catalog in conj_catalogs])
+	
+	dominant_clue = max(leading_winner, conjunction_winner)[1]
+	print dominant_clue
+	return dominant_clue.get_chron()	
 
 
 def score_ordering_match(observed, catalog):
@@ -180,22 +169,14 @@ def score_ordering_match(observed, catalog):
 
 	observed is list of observed words such as ['now', 'that']
 	"""
-	def exact_match(word_a, word_b):
-		if word_a == word_b:
-			return 1
-		else:
-			return 0
-	score = 0
-	for catalog_item in catalog:
+	score = catalog.initial_score                  # Chronological orderings favored over anit-chronological orderings
+	for catalog_item in catalog.items:
 		# Assume for now that the catalog item is one word to be matched. TODO fix.
 		for observed_item in observed:
-			print catalog_item
-			print observed_item
 			if catalog_item.lower() == observed_item.lower():
 				score += 1
 	return (score, catalog)
-
-		#score = sum(exact_match(observed_item, catalog_item) for observed_item in observed)
+	#score = sum(exact_match(observed_item, catalog_item) for observed_item in observed)
 
 	#return score
 
