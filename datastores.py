@@ -59,10 +59,6 @@ class OrderDataStore(object):
         Record the relationship in which prior_event precedes later_event
         Adds later_event to the list of events that follow prior_event
         """
-        print prior_event
-        print prior_event.get_real_event()
-        print later_event
-        print later_event.get_real_event()
         self.order_table[prior_event.get_real_event()].append(later_event.get_real_event())
 
 

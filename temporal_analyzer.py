@@ -162,7 +162,7 @@ class TemporalAnalyzer(object):
         print len(event_tree_list)
         event_instances = []
         for event_tree in event_tree_list:
-            prior_event_matched = util.best_event_match(self.events, " ".join(event_tree.leaves()), 0.30)
+            prior_event_matched = util.best_event_match(self.events, " ".join(event_tree.leaves()), 0.20)
             if prior_event_matched:
                 e = ReferenceEvent(event_tree, prior_event_matched)
                 #print "%s refers to %s" % (e, best_match)
@@ -321,13 +321,13 @@ class TemporalAnalyzer(object):
         return self.order_data_store
 
 
-
 def bootstrap(mode_args):
     if mode_args['bootstrap_mode'] == 'input':
         #Create a TemporalAnalyzer instance
         text_filename = mode_args['bootstrap_data']
         analyzer = TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
+        print analyzer.order_data_store
         return analyzer
     elif mode_args['bootstrap_mode'] == 'load':
         shelve_filename = mode_args['bootstrap_data']

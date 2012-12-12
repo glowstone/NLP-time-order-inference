@@ -10,12 +10,12 @@ from dateutil.relativedelta import relativedelta
 
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
-try:
-    from mx.DateTime import *
-except ImportError:
-    print """
-Requires eGenix.com mx Base Distribution
-http://www.egenix.com/products/python/mxBase/"""
+# try:
+#     from mx.DateTime import *
+# except ImportError:
+#     print """                                   # Shut up timex
+# Requires eGenix.com mx Base Distribution
+# http://www.egenix.com/products/python/mxBase/"""
 
 # Predefined strings.
 numbers = "(^a(?=\s)|one|two|three|four|five|six|seven|eight|nine|ten| \
