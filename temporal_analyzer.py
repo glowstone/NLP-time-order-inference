@@ -41,7 +41,7 @@ class TemporalAnalyzer(object):
     def __init__(self, filename):
         self.filename = filename                    
         self.time_data_store = TimeDataStore()
-        Event.time_data_store = self.time_data_store
+        Event.time_data_store = self.time_data_store  # Static variable for Event class
         self.order_data_store = OrderDataStore()
         self.sentences = []                           # All valid sentences
         self.events = []                              # All valid events
