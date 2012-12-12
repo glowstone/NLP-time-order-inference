@@ -1,0 +1,9 @@
+
+# Alice -> Bob -> Colleen and then Colleen -> Alice creates a logical conflict
+# Also tests ordering by conjunction and leading words
+
+Alice went to the market before Bob stayed home.
+Bob stayed home before Colleen has roasted beef.
+Later, Colleen had none.
+Before Alice went to the market, Colleen went wee wee wee all the way home.
+

@@ -28,13 +28,7 @@ class QueryCollection(object):
     def execute(self, all_events, order_data_store, time_data_store):
         for query in self.queries:
             query.execute(all_events, order_data_store, time_data_store)
-            # if isinstance(query, TimeQuery):
-            #     query.execute(all_events, time_data_store)
-            # elif isinstance(query, OrderQuery):
-            #     query.execute(all_events, order_data_store)
-            # else:
-            #     pass              # Unrecognized Query Type
-
+           
 
 class Query(object):
     def __init__(self, text):
@@ -75,19 +69,3 @@ class OrderQuery(Query):
                 print "Sorry, OrderQuery failed."
         else:
             print "Sorry, event description(s) did not correspond to an Event"
-
-
-        # print event1
-        # print event2
-
-        # if event1 and event2:
-        #     # If we can do the comparison based on absolute times, then do that
-        #     if event1.absolute_times and event2.absolute_times:
-        #         if event1.absolute_times[0] > event2.absolute_times[0]:
-        #             return "%s happened before %s" % (event2, event1)
-        #         elif event1.absolute_times[0] < event2.absolute_times[0]:
-        #             return "%s happened before %s" % (event1, event2)
-        #         else:
-        #             return "%s and %s happend at the same time, %s" % (event1, event2, event1.absolute_times[0])
-        # else:
-        #     return None

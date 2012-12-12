@@ -1,0 +1,18 @@
+
+ORDER_QUERY
+Alice went to the market
+Bob stayed home
+
+ORDER_QUERY
+Bob stayed home
+Colleen had roasted beef
+
+ORDER_QUERY
+Colleen had roasted beef
+Colleen had none
+
+# Note the conflict here is detectable by calling analyzer.order_data_store.is_logical()
+ORDER_QUERY
+Alice went to the market
+Colleen had none
+

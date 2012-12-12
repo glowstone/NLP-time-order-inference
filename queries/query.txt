@@ -1,8 +1,0 @@
-TIME_QUERY
-Eisenhower's career in the peacetime Army stagnated
-
-ORDER_QUERY 
-Eisenhower joined 1919 Motor Transport Corps
-Eisenhower served as a battalion commander
-
-

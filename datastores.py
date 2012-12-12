@@ -51,6 +51,15 @@ class OrderDataStore(object):
         """
         return self.order_table.keys()
 
+    def following_events(self, event):
+        """
+        returns the list of events that follow the given event if found, otherwise []
+        """
+        if event in self.order_table:
+            return self.order_table[event]
+        else:
+            return []
+
 
     def add_event(self, event):
         """
@@ -123,6 +132,26 @@ class OrderDataStore(object):
             if self.depth_first_search(event, event_b):
                 return True
         return False
+
+    def is_logical(self):
+        """
+        Iterates over the entire ordre_data_store order_store to look for 
+        conflicts which indicate logical inconsistences in the processed text.
+
+        returns True if no conflicts found, False if logical conflict found
+        """
+        # A -> [B]
+        # B -> [A]
+        for event_a in self.get_events():
+            for event_b in self.get_events():
+                if event_a != event_b:
+                    a_before_b = self.depth_first_search(event_a, event_b)
+                    b_before_a = self.depth_first_search(event_b, event_a)
+                    if a_before_b and b_before_a:
+                        print event_a
+                        print event_b
+                        return False
+        return True
 
     def __repr__(self):
         return str(self.order_table)
