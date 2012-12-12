@@ -10,7 +10,8 @@ from nltk.corpus import stopwords
 import config
 from timex import tag, ground
 from date_models import Date
-from catalogs import ScoredCatalog, CHRON_LEAD, ACHRON_LEAD, CHRON_CONJS, ACHRON_CONJS
+from catalogs import ScoredCatalog, CHRON_LEAD, ACHRON_LEAD, CHRON_CONJS, ACHRON_CONJS, \
+CROSS_CHRON_LEAD, CROSS_ACHRON_LEAD
 
 
 ENGLISH_STOPWORDS = stopwords.words("english")
@@ -146,7 +147,23 @@ def extract_entities(event):
 	return entities
 
 
+def cross_sent_order(lead_words):
+	"""
+	Infer whether the first or second Event occurred first using leading word and conjunction word
+	observations
 
+	returns name of a catalog such as 'chron', 'achron', or 'unordered' indicating correct ordering.
+	"""
+	lead_catalogs = [ScoredCatalog('chron', CROSS_CHRON_LEAD), ScoredCatalog('achron', CROSS_ACHRON_LEAD)]
+	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
+
+	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
+	unordered = (0.5, ScoredCatalog('unordered', []))
+
+	# Determine the dominant chronology decision by comparing catalog scores
+	dominant_clue = max(unordered, lead_decision)[1]
+	print dominant_clue, dominant_clue.get_score()
+	return dominant_clue.get_name()
 
 
 def same_sent_order(lead_words, conj_words):
@@ -154,24 +171,17 @@ def same_sent_order(lead_words, conj_words):
 	Infer whether the first or second Event occurred first using leading word and conjunction word
 	observations
 
-	returns Boolean of whether event ordering should be chronological
+	returns name of a catalog such as 'chron', 'achron', or 'unordered' indicating correct ordering.
 	"""
 	lead_catalogs = [ScoredCatalog('chron', CHRON_LEAD), ScoredCatalog('achron', ACHRON_LEAD)]
 	conj_catalogs = [ScoredCatalog('chron', CHRON_CONJS), ScoredCatalog('achron', ACHRON_CONJS)]
 	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
-
-	print lead_words
-
-	print conj_words
 
 	# Decide among the chronological and anti-chronological catalogs for lead words and conj words
 	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
 	conj_decision = max([score_catalog_match(catalog, conj_words) for catalog in conj_catalogs])
 	#uord_decision = score_ordering_match(unordered_catalog, [])
 	unordered = (0.5, ScoredCatalog('unordered', []))
-
-	print lead_decision
-	print conj_decision
 
 	# Determine the dominant chronology decision by comparing catalog scores
 	dominant_clue = max(unordered, lead_decision, conj_decision)[1]

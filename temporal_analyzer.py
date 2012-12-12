@@ -56,21 +56,26 @@ class TemporalAnalyzer(object):
         returns None
         """
         f = open(filename, 'r')
+        # prev_event is the previous event from a sentence with only one event, or if the 
+        #sentence contained two events, prev_event is None because choosing which one to record 
+        #ordering on is ambiguous.
+        prev_event = None
 
         for line in f:
             sentence_text = line.split("#")[0].strip()
             if len(sentence_text) > 0:
                 sentence = Sentence(sentence_text)
-                (valid, event_list, msg) = self.parse_sentence(sentence)
+                (valid, event_list, prev_event) = self.parse_sentence(sentence, prev_event)
                 if valid:
                     self.sentences.append(sentence)
                     self.events.extend(event_list)
 
 
-    def parse_sentence(self, sentence):
+    def parse_sentence(self, sentence, prev_event):
         """
         Augments sentence with its Stanford Parse tree, POS tags from the Stanford Parser, and
         an the NLTK. Extracts Events from the sentence.
+        prev_mono_sent_event is the event from the 
 
         mutates sentence by adding data to its fields
 
@@ -82,14 +87,19 @@ class TemporalAnalyzer(object):
 
         (success, ordered_event_trees) = self.extract_events(sentence)
         if not success:
-            return (False, [], "Events could not be extracted from this sentence.")
-        self.construct_events(sentence, ordered_event_trees)           
-        self.ordering_analysis(sentence)
+            return (False, [], prev_event)
+        ordered_events = self.construct_events(sentence, ordered_event_trees)
+        self.ordering_analysis(sentence, prev_event)
         self.temporal_analysis(sentence)
         self.process_relative_times(sentence)
 
+        if len(ordered_event_trees) == 1:
+            prev_event = ordered_events[0]
+        else:
+            prev_event = None
+
         real_events = filter(lambda event: isinstance(event, Event), sentence.events)
-        return (True, real_events, None)
+        return (True, real_events, prev_event)
 
 
     def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
@@ -126,9 +136,7 @@ class TemporalAnalyzer(object):
         returns (boolean of whether sentence was valid, [ordered list of the event phrase trees as they occur in the sentence])
         """
         # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
-        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR', ','])
-        print 'sentence', sentence.parse_tree
-        print 'phrase', phrase_tree
+        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
 
         if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
             index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
@@ -163,11 +171,9 @@ class TemporalAnalyzer(object):
             print 'event', e
             event_instances.append(e)
         sentence.events = event_instances
-        print sentence
-        print sentence.events
         return event_instances
 
-    def ordering_analysis(self, sentence):
+    def ordering_analysis(self, sentence, prev_event):
         """
         Takes a Sentence with its sentence.events filled out with events in order. 
         Identifies leading and subordinating conjunction clue words that give ordering information.
@@ -183,7 +189,8 @@ class TemporalAnalyzer(object):
             sentence.lead_words = event.parse_tree.leaves()[:1]   # Leading word
             sentence.conj_words = []                              # No conjunction  words
 
-            self.order_mono_event_sent(sentence.lead_words, sentence.conj_words, event)
+            # Cross Sentence: Ordering with event from the previous adjacent one event sentence
+            self.order_mono_event_sent(sentence.lead_words, prev_event, event)
 
         elif len(ordered_events) == 2:
             (event_one, event_two) = ordered_events[:2]
@@ -208,12 +215,21 @@ class TemporalAnalyzer(object):
         pass
 
 
-    def order_mono_event_sent(self, lead_words, conj_words, event):
-        print "Not yet supported"
-        
-        # sentence.pprint()
+    def order_mono_event_sent(self, lead_words, prev_event, event):
+        if isinstance(event, Event):
+            self.order_data_store.add_event(event)
 
-             # util.cross_sentence_order()
+        # prev_event is None at beginning of text file and after two event sentences
+        if prev_event:
+            # Determine ordering of Events across adjacent single event sentence
+            order = util.cross_sent_order(lead_words)
+            
+            if order == 'chron':
+                self.order_data_store.record_order(prev_event, event)
+            elif order == 'achron':
+                self.order_data_store.record_order(event, prev_event)
+            else:
+                pass   # unordered, Do not record an order relationship
         
 
     def order_dual_event_sent(self, lead_words, conj_words, event_one, event_two):
@@ -241,9 +257,7 @@ class TemporalAnalyzer(object):
         else:
             pass   # unordered, Do not record an order relationship
         
-        print self.order_data_store
-
-
+    
     def process_relative_times(self, sentence):
         """
         Takes a Sentence with its sentence.events property populated. Analyzes Events to find relative time information

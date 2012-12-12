@@ -1,0 +1,22 @@
+# Mixture of sentences containing 1 or 2 events. Contains temporal information spread over
+# multiple sentences and contains reference events.
+
+
+Alice went to the city.
+Later, the British invaded Boston in 1776.
+The British invaded Boston on March 8, until the Americans counterattacked Tuesday.
+The Americans counterattacked using cannons on April 27.
+Afterward, Bostonians were freed.
+
+# Correct Results
+# Order Info
+#
+# Alice went to city -> [British invaded Boston...]
+# British invaded... -> [Americans counterattacked...]
+# Americans counterattacked... -> [Bostonians freed]
+#
+# Time Info
+# Britsh invaded March 8, 1776
+# Americans counterattacked April 27
+
+

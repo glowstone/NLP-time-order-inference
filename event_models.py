@@ -16,7 +16,7 @@ class AbstractEvent(object):
         return self
 
     def __repr__(self):
-        return '<AbstractEvent %s>' % id(self)
+        return '<AbstractEvent %s>' % self.text
 
 
 class Event(AbstractEvent):
