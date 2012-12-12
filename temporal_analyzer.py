@@ -172,28 +172,22 @@ class TemporalAnalyzer(object):
         returns None
         """
         ordered_events = sentence.events
-
         if len(ordered_events) == 1:
             event = ordered_events[0]
             sentence.lead_words = event.parse_tree.leaves()[:1]   # Leading word
             sentence.conj_words = []                              # No conjunction  words
-        
-            print "Ordering not yet supported for this sentence, but it will be."
 
-             # sentence.pprint()
-
-             # util.cross_sentence_order()
+            self.order_mono_event_sent(sentence.lead_words, sentence.conj_words, event)
 
         elif len(ordered_events) == 2:
-            event_one = ordered_events[0]
-            event_two = ordered_events[1]
+            (event_one, event_two) = ordered_events[:2]
             sentence.lead_words = event_one.parse_tree.leaves()[:1]        # Leading word    
             sentence.conj_words = event_two.parse_tree.leaves()[:3]    # Longest subordinating conjunction has 3 words such as 'as soon as'  
             
-            self.order_bi_event_sent(sentence.lead_words, sentence.conj_words, event_one, event_two)
+            self.order_dual_event_sent(sentence.lead_words, sentence.conj_words, event_one, event_two)
 
-
-            
+        else:   
+            print "More than two Event phrases (should have caught this earlier)!!"
 
 
     def temporal_analysis(self, sentence):
@@ -205,10 +199,18 @@ class TemporalAnalyzer(object):
     
         returns None
         """
-
         pass
 
-    def order_mon_event_sent(lead_words, conj_words, event_one, event_two):
+
+    def order_mono_event_sent(self, lead_words, conj_words, event):
+        print "Not yet supported"
+        
+        # sentence.pprint()
+
+             # util.cross_sentence_order()
+        
+
+    def order_dual_event_sent(self, lead_words, conj_words, event_one, event_two):
         """
         Given a list of leading words and conj_words and two AbstractEvents, will infer whether
         there is a chronological, anti-chronological, or no ordering between the Events (or refered_to 
@@ -221,11 +223,10 @@ class TemporalAnalyzer(object):
             if isinstance(event, Event):          # 'Real' Events may be keys in order_data_store
                 self.order_data_store.add_event(event)
             else:
-                # A Reference event may only refer to a previously seen Event, which is already in order_data__store
-                pass
-
+                pass   # Reference event may only refer to previously seen Event, which is already in order_data_store
+        
         # Determine ordering of Events within current sentence
-        order = util.same_sent_order(sentence.lead_words, sentence.conj_words)
+        order = util.same_sent_order(lead_words, conj_words)
         
         if order == 'chron':
             self.order_data_store.record_order(event_one, event_two)
@@ -233,15 +234,8 @@ class TemporalAnalyzer(object):
             self.order_data_store.record_order(event_two, event_one)
         else:
             pass   # unordered, Do not record an order relationship
+        
         print self.order_data_store
-
-        else:   
-            print "More than two Event phrases (should have caught this earlier)!!"
-
-    def order_bi_event_sent():
-        pass
-
-
 
 
     def process_relative_times(self, sentence):

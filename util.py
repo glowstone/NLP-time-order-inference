@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import config
 from timex import tag, ground
 from date_models import Date
-from catalogs import WordCatalog, CHRON_LEAD, ACHRON_LEAD, CHRON_CONJS, ACHRON_CONJS
+from catalogs import ScoredCatalog, CHRON_LEAD, ACHRON_LEAD, CHRON_CONJS, ACHRON_CONJS
 
 
 ENGLISH_STOPWORDS = stopwords.words("english")
@@ -149,39 +149,51 @@ def extract_entities(event):
 
 
 
-def same_sent_order(leading, conjunction):
+def same_sent_order(lead_words, conj_words):
 	"""
 	Infer whether the first or second Event occurred first using leading word and conjunction word
 	observations
 
 	returns Boolean of whether event ordering should be chronological
 	"""
-	lead_catalogs = [WordCatalog(CHRON_LEAD, 'chron'), WordCatalog(ACHRON_LEAD, 'achron')]
-	conj_catalogs = [WordCatalog(CHRON_CONJS, 'chron'), WordCatalog(ACHRON_CONJS, 'achron')]
-	
-	# Useful to see leading and conjunction conflicts for tweaking
-	leading_winner = max([score_ordering_match(leading, catalog) for catalog in lead_catalogs])
-	conjunction_winner = max([score_ordering_match(conjunction, catalog) for catalog in conj_catalogs])
-	unordered = (0.5, WordCatalog([], 'unordered'))
+	lead_catalogs = [ScoredCatalog(CHRON_LEAD, 'chron'), ScoredCatalog(ACHRON_LEAD, 'achron')]
+	conj_catalogs = [ScoredCatalog(CHRON_CONJS, 'chron'), ScoredCatalog(ACHRON_CONJS, 'achron')]
+	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
 
-	dominant_clue = max(unordered, leading_winner, conjunction_winner)[1]
+	# Decide among the chronological and anti-chronological catalogs for lead words and conj words
+	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
+	conj_decision = max([score_catalog_match(catalog, conj_words) for catalog in conj_catalogs])
+	#uord_decision = score_ordering_match(unordered_catalog, [])
+	unordered = (0.5, ScoredCatalog([], 'unordered'))
+
+	# Determine the dominant chronology decision by comparing catalog scores
+	dominant_clue = max(unordered, lead_decision, conj_decision)[1]
 	print dominant_clue
 	return dominant_clue
 
 
-def score_ordering_match(observed, catalog):
+def score_catalog_match(catalog, observed):
 	"""
-	Assign a score to how closely observed list matches words in catalog.
+	Find all matching subsequences between the catalog list of words and the list of observed
+	words and increments the catalogs score for each found.
+	Scores the given catalog based on matches found with observations
 
 	observed is list of observed words such as ['now', 'that']
 	"""
-	score = catalog.initial_score                  # Chronological orderings favored over anit-chronological orderings
-	for catalog_item in catalog.items:
-		# Assume for now that the catalog item is one word to be matched. TODO fix.
-		for observed_item in observed:
-			if catalog_item.lower() == observed_item.lower():
-				score += 1
-	return (score, catalog)
+	for catalog_word in catalog.get_items():
+		for observed_word in observed:
+			if catalog_word.lower() == observed_word.lower():
+				catalog.increment_score(1)
+	return (catalog.get_score(), catalog)
+
+
+	# score = catalog.initial_score                  # Chronological orderings favored over anit-chronological orderings
+	# for catalog_item in catalog.items:
+	# 	# Assume for now that the catalog item is one word to be matched. TODO fix.
+	# 	for observed_item in observed:
+	# 		if catalog_item.lower() == observed_item.lower():
+	# 			score += 1
+	# return (score, catalog)
 	#score = sum(exact_match(observed_item, catalog_item) for observed_item in observed)
 
 	#return score

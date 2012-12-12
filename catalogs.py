@@ -35,6 +35,12 @@ class ScoredCatalog(object):
 		"""
 		return self.score
 
+	def get_items(self):
+		"""
+		returns the list of string word items
+		"""
+		return self.items
+
 	def increment_score(self, increment):
 		"""
 		Increments the score of the ScoredCatalog
