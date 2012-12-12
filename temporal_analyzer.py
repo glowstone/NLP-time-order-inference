@@ -339,9 +339,7 @@ def bootstrap(mode_args):
 
 
 def analyze(mode_args, analyzer):
-    print "ANANNDSANDNSADNA"
     if mode_args['analysis_mode'] == 'query':
-        print "fdsfdsfd"
         query_collection = QueryCollection(mode_args['analysis_data'])
         print query_collection
         query_collection.execute(analyzer.events, analyzer.order_data_store, analyzer.time_data_store)

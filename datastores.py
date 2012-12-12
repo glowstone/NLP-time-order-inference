@@ -14,6 +14,13 @@ class TimeDataStore(object):
             self.time_table[event] = None
 
 
+    def get_events(self):
+        """
+        returns the list of all events for which time information was recorded
+        """
+        return self.time_table.keys()
+
+
     def record_event(self, event, time_object):            # Takes Tommy's time object of some sort?
         """
         Sets the time_object to be the value at the given event key in time_table
@@ -65,7 +72,7 @@ class OrderDataStore(object):
     def query_order(self, event_a, event_b):
         """
         returns string X drawn from 'before', 'after', 'conflicting', 'not enough info' to 
-        describe whether event_a happens X event_b.
+        describe whether event_a happens X event_b based on the order_data_store information.
         """
         a_before_b = self.depth_first_search(event_a, event_b)
         b_before_a = self.depth_first_search(event_b, event_a)
@@ -77,6 +84,29 @@ class OrderDataStore(object):
             return "%s occurred after %s" % (event_a, event_b)
         else:
             return  "Not enough info to determine order between %s and %s" % (event_a, event_b)
+
+
+    def query_order_augmented(self, event_a, event_b, time_data_store):
+        """
+        Describes whether event_a or event_b happened first using the order_data_store and 
+        using augmenting information from the time_data_store if available for both events
+        and if one time is greater
+        Otherwise, uses infers the order based on order_data_store.
+
+        returns string X drawn from 'before', 'after', 'conflicting', 'not enough info' to 
+        """
+        if time_data_store.query_time(event_a) and time_data_store.query_time(event_b):
+            time_a = time_data_store.query_time(event_a)
+            time_b = time_data_store.query_time(event_b)
+            if time_a > time_b:
+                return "%s occurred before %s" % (event_a, event_b)
+            elif time_a < time_b:
+                return "%s occurred after %s" % (event_a, event_b)
+            else:
+                return self.query_order(event_a, event_b)
+        else:
+            return self.query_order(event_a, event_b)
+
 
     def depth_first_search(self, event_a, event_b):
         """

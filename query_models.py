@@ -27,12 +27,13 @@ class QueryCollection(object):
 
     def execute(self, all_events, order_data_store, time_data_store):
         for query in self.queries:
-            if isinstance(query, TimeQuery):
-                query.execute(all_events, time_data_store)
-            elif isinstance(query, OrderQuery):
-                query.execute(all_events, order_data_store)
-            else:
-                pass              # Unrecognized Query Type
+            query.execute(all_events, order_data_store, time_data_store)
+            # if isinstance(query, TimeQuery):
+            #     query.execute(all_events, time_data_store)
+            # elif isinstance(query, OrderQuery):
+            #     query.execute(all_events, order_data_store)
+            # else:
+            #     pass              # Unrecognized Query Type
 
 
 class Query(object):
@@ -45,22 +46,14 @@ class TimeQuery(Query):
     def __init__(self, event_desc_a):       # TODO this is kind of ugly to have to pass the events in here...
         self.event_desc_a = event_desc_a
 
-    def execute(self, events, time_data_store):
-        event = best_event_match(self.events, self.event_desc_a, 0.10)
+    def execute(self, events, order_data_store, time_data_store):
+        event = best_event_match(events, self.event_desc_a, 0.10)
 
         result = time_data_store.query_time(event)
         if result:
             print result
         else:
-            print "Sorry, this query failed."
-
-        # if event:
-        #     time = event.get_best_time()
-        #     if not time:
-        #         return "No time estimate for this event"
-        #     return str(time)
-        # else:
-        #     return None
+            print "Sorry, TimeQuery failed."
 
 class OrderQuery(Query):
     shorthand = 'ORDER_QUERY'
@@ -69,17 +62,17 @@ class OrderQuery(Query):
         self.event_desc_a = event_desc_a
         self.event_desc_b = event_desc_b
 
-    def execute(self, events, order_data_store):
+    def execute(self, events, order_data_store, time_data_store):
         event1 = best_event_match(events, self.event_desc_a, 0.10)
         event2 = best_event_match(events, self.event_desc_b, 0.10)
 
         # Events descriptions correspond to known events
         if event1 and event2:
-            result = order_data_store.query_order(event1, event2)
+            result = order_data_store.query_order_augmented(event1, event2, time_data_store)
             if result:
                 print result
             else:
-                print "Sorry, this query failed."
+                print "Sorry, OrderQuery failed."
         else:
             print "Sorry, event description(s) did not correspond to an Event"
 
