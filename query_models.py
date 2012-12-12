@@ -43,10 +43,10 @@ class TimeQuery(Query):
     def execute(self):
         event = best_event_match(self.events, self.event_desc_a, 0.10)
         if event:
-            times = event.absolute_times
-            if not times:
+            time = event.best_time
+            if not time:
                 return "No time estimate for this event"
-            return str(event.best_time)
+            return str(time)
         else:
             return None
 

@@ -1,5 +1,6 @@
 from util import extract_entities
 from find_temporals import find_temporals
+from date_models import Date
 from util import stanford_parse
 from nltk.tree import ParentedTree
 
@@ -33,7 +34,7 @@ class ReferenceEvent(AbstractEvent):
         super(ReferenceEvent, self).__init__(tree)
         self.reference = event
         self.reference_times = []               # Estimate of time of the referred to Event
-        self.sync_times()         
+        self.sync_times()
 
     def add_reference(self, event):
         self.reference = event
@@ -54,13 +55,13 @@ class ReferenceEvent(AbstractEvent):
             if precision > other_precision:
                 self.reference.best_time = self.best_time
             else:
-                print "HERE"
                 self.best_time = self.reference.best_time
         else:
             if self.reference.best_time:
                 self.best_time = self.reference.best_time
             else:
                 self.best_time = None
+                
 
     def __repr__(self):
         return '<ReferenceEvent %s>' % self.text
