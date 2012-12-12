@@ -11,7 +11,7 @@ class TimeDataStore(object):
         Initializes the list of events that follow as empty.
         """
         if event not in self.time_table:
-            self.time_table[event] = {}
+            self.time_table[event] = None
 
 
     def record_event(self, event, time_object):            # Takes Tommy's time object of some sort?
@@ -20,20 +20,7 @@ class TimeDataStore(object):
 
         Creates an 'event' key in time_table if it does not exist.
         """
-        if event not in self.time_table:
-            self.time_table[event] = time_object
-
-
-    def update_time(self, event, later_event):
-        """
-        Record the relationship in which prior_event precedes later_event
-
-        Adds later_event to the list of events that follow prior_event
-        """
-        if event in self.time_table:
-            #merged_time = util.merge_time(self.time_table[event], )# Call to merge our date objects if that exists
-            merged_time = {}
-            self.time_table[event] = merged_time
+        self.time_table[event] = time_object
 
 
     def query_time(self, event):

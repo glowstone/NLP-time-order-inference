@@ -155,7 +155,7 @@ class TemporalAnalyzer(object):
                 e = ReferenceEvent(event_tree, prior_event_matched)
                 #print "%s refers to %s" % (e, best_match)
             else:
-                e = Event(event_tree)
+                e = Event(event_tree, self.time_data_store)
             event_instances.append(e)
         sentence.events = event_instances
         return event_instances

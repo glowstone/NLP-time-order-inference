@@ -17,22 +17,23 @@ class AbstractEvent(object):
 
 
 class Event(AbstractEvent):
-    def __init__(self, tree):
+    def __init__(self, tree, time_data_store):
         super(Event, self).__init__(tree)
+        self.time_data_store = time_data_store
         self.find_best_time()
 
     def find_best_time(self):
         absolute_times = find_temporals(self.text)
         if len(absolute_times) > 0:
-            self.best_time = sorted(absolute_times, key=lambda x: x.precision(), reverse=True)[0]
+            self.time_data_store.record_event(self, sorted(absolute_times, key=lambda x: x.precision(), reverse=True)[0])
         else:
-            self.best_time = None
+            self.time_data_store.add_event(self)
 
     def get_best_time(self):
-        return self.best_time
+        return self.time_data_store.query_time(self)
 
     def set_best_time(self, time):
-        self.best_time = time
+        self.time_data_store.record_event(self, time)
 
     def __repr__(self):
         return '<Event %s>' % self.text
@@ -75,9 +76,3 @@ class ReferenceEvent(AbstractEvent):
 
     def __repr__(self):
         return '<ReferenceEvent %s>' % self.text
-
-
-# Just for testing
-test_events = [Event(ParentedTree(stanford_parse("Eisenhower joined the 1919 Motor Transport Corps convoy at Frederick, Maryland, after the 1st days travel"))),
-               Event(ParentedTree(stanford_parse("Eisenhower was promoted to the permanent rank of lieutenant colonel in 1936"))),
-               Event(ParentedTree(stanford_parse("John went to the store at 9:00 am on February 13, 2003")))]
