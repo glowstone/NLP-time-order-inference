@@ -1,4 +1,6 @@
 
+from event_models import AbstractEvent, Event, ReferenceEvent
+
 class TimeDataStore(object):
     def __init__(self):
         self.time_table = {}
@@ -19,7 +21,7 @@ class TimeDataStore(object):
         Creates an 'event' key in time_table if it does not exist.
         """
         self.time_table[event] = time_object
-        
+
 
     def query_time(self, event):
         """
@@ -57,7 +59,11 @@ class OrderDataStore(object):
         Record the relationship in which prior_event precedes later_event
         Adds later_event to the list of events that follow prior_event
         """
-        self.order_table[prior_event].append(later_event)
+        print prior_event
+        print prior_event.get_real_event()
+        print later_event
+        print later_event.get_real_event()
+        self.order_table[prior_event.get_real_event()].append(later_event.get_real_event())
 
 
     def query_order(self, event_a, event_b):

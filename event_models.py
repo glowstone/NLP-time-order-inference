@@ -12,6 +12,9 @@ class AbstractEvent(object):
         self.pos_tagged = tree.pos()
         self.entities = extract_entities(self)
 
+    def get_real_event(self):
+        return self
+
     def __repr__(self):
         return '<AbstractEvent %s>' % id(self)
 
@@ -48,7 +51,7 @@ class ReferenceEvent(AbstractEvent):
         self.reference_times = []                  
         self.sync_times()
 
-    def refers_to(self):
+    def get_real_event(self):
         """
         Returns the Event the ReferenceEvent refers to. 
         """
