@@ -126,7 +126,9 @@ class TemporalAnalyzer(object):
         returns (boolean of whether sentence was valid, [ordered list of the event phrase trees as they occur in the sentence])
         """
         # Search all SBAR and S phrases. Choose the one closest to root (but not the root itself) to divide the sentence.
-        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR'])
+        phrase_tree = util.aux_phrase_subtree(sentence.parse_tree, ['S', 'SBAR', ','])
+        print 'sentence', sentence.parse_tree
+        print 'phrase', phrase_tree
 
         if phrase_tree:                               # Sentence is a 2 event sentence with an S-phrase 
             index_tuples = util.subsequence_search(phrase_tree.leaves(), sentence.parse_tree.leaves())
@@ -149,6 +151,7 @@ class TemporalAnalyzer(object):
 
         returns [list of event instances]
         """
+        print len(event_tree_list)
         event_instances = []
         for event_tree in event_tree_list:
             prior_event_matched = util.best_event_match(self.events, " ".join(event_tree.leaves()), 0.30)
@@ -157,8 +160,11 @@ class TemporalAnalyzer(object):
                 #print "%s refers to %s" % (e, best_match)
             else:
                 e = Event(event_tree)
+            print 'event', e
             event_instances.append(e)
         sentence.events = event_instances
+        print sentence
+        print sentence.events
         return event_instances
 
     def ordering_analysis(self, sentence):
