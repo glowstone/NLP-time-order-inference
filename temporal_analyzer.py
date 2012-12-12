@@ -41,6 +41,7 @@ class TemporalAnalyzer(object):
     def __init__(self, filename):
         self.filename = filename                    
         self.time_data_store = TimeDataStore()
+        Event.time_data_store = self.time_data_store  # Static variable for Event class
         self.order_data_store = OrderDataStore()
         self.sentences = []                           # All valid sentences
         self.events = []                              # All valid Events (not AbstractEvents)
@@ -162,11 +163,11 @@ class TemporalAnalyzer(object):
 
     def ordering_analysis(self, sentence):
         """
-        Takes a Sentence with its sentence.events filled out with events in order. Identifies leading
-        and subordinating conjunction clue words that give ordering information. 
-        Infers an ordering of the Events and updates the OrderDataStore.
-
-        Mutates sentence.lead_words, sentence.conj_words, OrderDataStore
+        Takes a Sentence with its sentence.events filled out with events in order. 
+        Identifies leading and subordinating conjunction clue words that give ordering information.
+        Performs mono event ordering or dual event orderng 
+        
+        Mutates sentence.lead_words, sentence.conj_words
 
         returns None
         """
@@ -189,25 +190,10 @@ class TemporalAnalyzer(object):
             sentence.lead_words = event_one.parse_tree.leaves()[:1]        # Leading word    
             sentence.conj_words = event_two.parse_tree.leaves()[:3]    # Longest subordinating conjunction has 3 words such as 'as soon as'  
             
+            self.order_bi_event_sent(sentence.lead_words, sentence.conj_words, event_one, event_two)
 
-            self.order_data_store.add_event(event_one)
-            self.order_data_store.add_event(event_two)
 
-            # Determine ordering of Events within current sentence
-            order = util.same_sent_order(sentence.lead_words, sentence.conj_words)
             
-            if order == 'chron':
-                self.order_data_store.record_order(event_one, event_two)
-            elif order == 'achron':
-                self.order_data_store.record_order(event_two, event_one)
-            else:   # unordered
-                pass
-
-
-            print self.order_data_store
-
-        else:
-            print "More than two Event phrases (should have caught this earlier)!!"
 
 
     def temporal_analysis(self, sentence):
@@ -221,6 +207,42 @@ class TemporalAnalyzer(object):
         """
 
         pass
+
+    def order_mon_event_sent(lead_words, conj_words, event_one, event_two):
+        """
+        Given a list of leading words and conj_words and two AbstractEvents, will infer whether
+        there is a chronological, anti-chronological, or no ordering between the Events (or refered_to 
+        Event if one of the passed AbstractEvents is a RefenceEvent)
+
+        Adds all 'real' Events to the OrderDataStore.
+        Updates OrderDataStore to record infered ordering_analysis
+        """
+        for event in [event_one, event_two]:
+            if isinstance(event, Event):          # 'Real' Events may be keys in order_data_store
+                self.order_data_store.add_event(event)
+            else:
+                # A Reference event may only refer to a previously seen Event, which is already in order_data__store
+                pass
+
+        # Determine ordering of Events within current sentence
+        order = util.same_sent_order(sentence.lead_words, sentence.conj_words)
+        
+        if order == 'chron':
+            self.order_data_store.record_order(event_one, event_two)
+        elif order == 'achron':
+            self.order_data_store.record_order(event_two, event_one)
+        else:
+            pass   # unordered, Do not record an order relationship
+        print self.order_data_store
+
+        else:   
+            print "More than two Event phrases (should have caught this earlier)!!"
+
+    def order_bi_event_sent():
+        pass
+
+
+
 
     def process_relative_times(self, sentence):
         """
