@@ -1,9 +1,11 @@
 
-# Alice -> Bob -> Colleen and then Colleen -> Alice creates a logical conflict
-# Also tests ordering by conjunction and leading words
+# Alice -> Bob -> Colleen -> David and then David -> Alice creates a logical conflict
+
 
 Alice went to the market before Bob stayed home.
-Bob stayed home before Colleen has roasted beef.
-Later, Colleen had none.
-Before Alice went to the market, Colleen went wee wee wee all the way home.
+Bob stayed home before Colleen had roasted beef for dinner.
+David had none.
+Later, Fred did a pset
+# Logical conflicts occur if the next line is included. Try commenting it out.
+Before Alice went to the market, Bob stayed home.
 

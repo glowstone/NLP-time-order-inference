@@ -1,4 +1,4 @@
-from util import best_event_match
+from util import best_event_match, error
 
 
 class QueryCollection(object):
@@ -11,10 +11,10 @@ class QueryCollection(object):
         f = open(filename, 'r')
         line = f.readline()
         while len(line) > 0:                                # Read to end of file
-            if len(line) == 1:                              # Blank line with newline character
+            line = line.split("#")[0].strip()
+            if len(line) <= 1:                              # Blank line with newline character
                 line = f.readline()
                 continue
-            line = line.split("#")[0].strip()
             query_kinds = filter(lambda x: x.shorthand == line.rstrip(), self.query_types)
             if not len(query_kinds) == 1:
                 error("Valid Queries are %s. You used %s" % ([x.shorthand for x in self.query_types], line))

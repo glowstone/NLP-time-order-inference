@@ -86,7 +86,7 @@ class OrderDataStore(object):
         a_before_b = self.depth_first_search(event_a, event_b)
         b_before_a = self.depth_first_search(event_b, event_a)
         if a_before_b and b_before_a:
-            return "Ordering information about these events %s" % (event_a, event_b)
+            return "Ordering information about these events conflicts: %s %s" % (event_a, event_b)
         elif a_before_b:
             return "%s occurred before %s" % (event_a, event_b)
         elif b_before_a:
@@ -117,7 +117,7 @@ class OrderDataStore(object):
             return self.query_order(event_a, event_b)
 
 
-    def depth_first_search(self, event_a, event_b):
+    def depth_first_search(self, event_a, event_b, count=0):
         """
         The most basic DFS implementation I could think of. Returns True if there's some path 
         that says event_a is before event_b, False otherwise.
@@ -126,10 +126,13 @@ class OrderDataStore(object):
 
         returns a boolean
         """
+        if count >= 10:                # Don't search more than 10 levels deep
+            return False
         if event_a == event_b:
             return True
         for event in self.order_table[event_a]:
-            if self.depth_first_search(event, event_b):
+            count+=1
+            if self.depth_first_search(event, event_b, count):
                 return True
         return False
 
