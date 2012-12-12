@@ -5,6 +5,47 @@ class TimeDataStore(object):
     def __init__(self):
         self.time_table = {}
 
+    def add_event(self, event):         
+        """
+        Adds the event as a key in the time_table of the TimeDataStore
+        Initializes the list of events that follow as empty.
+        """
+        if event not in self.time_table:
+            self.time_table[event] = {}
+
+
+    def record_event(self, event, time_object):            # Takes Tommy's time object of some sort?
+        """
+        Sets the time_object to be the value at the given event key in time_table
+
+        Creates an 'event' key in time_table if it does not exist.
+        """
+        if event not in self.time_table:
+            self.time_table[event] = time_object
+
+
+    def update_time(self, event, later_event):
+        """
+        Record the relationship in which prior_event precedes later_event
+
+        Adds later_event to the list of events that follow prior_event
+        """
+        if event in self.time_table:
+            #merged_time = util.merge_time(self.time_table[event], )# Call to merge our date objects if that exists
+            merged_time = {}
+            self.time_table[event] = merged_time
+
+
+    def query_time(self, event):
+        """
+        returns the Date Object representing all learned information about when the specified event occurred.
+        If event not found in time_table, returns None
+        """
+        if event in self.time_table:
+            return self.time_table[event]
+        else:
+            return None
+
 
 class OrderDataStore(object):
     def __init__(self):
