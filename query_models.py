@@ -14,6 +14,7 @@ class QueryCollection(object):
             if len(line) == 1:                              # Blank line with newline character
                 line = f.readline()
                 continue
+            line = line.split("#")[0].strip()
             query_kinds = filter(lambda x: x.shorthand == line.rstrip(), self.query_types)
             if not len(query_kinds) == 1:
                 error("Valid Queries are %s. You used %s" % ([x.shorthand for x in self.query_types], line))
@@ -47,13 +48,19 @@ class TimeQuery(Query):
     def execute(self, events, time_data_store):
         event = best_event_match(self.events, self.event_desc_a, 0.10)
 
-        if event:
-            time = event.get_best_time()
-            if not time:
-                return "No time estimate for this event"
-            return str(time)
+        result = time_data_store.query_time(event)
+        if result:
+            print result
         else:
-            return None
+            print "Sorry, this query failed."
+
+        # if event:
+        #     time = event.get_best_time()
+        #     if not time:
+        #         return "No time estimate for this event"
+        #     return str(time)
+        # else:
+        #     return None
 
 class OrderQuery(Query):
     shorthand = 'ORDER_QUERY'
@@ -66,11 +73,15 @@ class OrderQuery(Query):
         event1 = best_event_match(events, self.event_desc_a, 0.10)
         event2 = best_event_match(events, self.event_desc_b, 0.10)
 
-        result = order_data_store.query_order(event1, event2)
-        if result:
-            print result
+        # Events descriptions correspond to known events
+        if event1 and event2:
+            result = order_data_store.query_order(event1, event2)
+            if result:
+                print result
+            else:
+                print "Sorry, this query failed."
         else:
-            print "Sorry, this query failed."
+            print "Sorry, event description(s) did not correspond to an Event"
 
 
         # print event1

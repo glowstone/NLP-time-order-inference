@@ -67,8 +67,8 @@ class OrderDataStore(object):
         returns string X drawn from 'before', 'after', 'conflicting', 'not enough info' to 
         describe whether event_a happens X event_b.
         """
-        a_before_b = event_b in self.order_table[event_a]
-        b_before_a = event_a in self.order_table[event_b]
+        a_before_b = self.depth_first_search(event_a, event_b)
+        b_before_a = self.depth_first_search(event_b, event_a)
         if a_before_b and b_before_a:
             return "Ordering information about these events %s" % (event_a, event_b)
         elif a_before_b:
@@ -80,8 +80,8 @@ class OrderDataStore(object):
 
     def depth_first_search(self, event_a, event_b):
         """
-        The most basic DFS implementation I could think of. Returns True if there's some path that says event_a is 
-        before event_b, False otherwise.
+        The most basic DFS implementation I could think of. Returns True if there's some path 
+        that says event_a is before event_b, False otherwise.
 
         event_a and event_b are instances of AbstractEvent
 

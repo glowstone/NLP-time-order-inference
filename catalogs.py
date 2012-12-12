@@ -7,7 +7,7 @@ CROSS_ACHRON_LEAD = ["previously", "beforehand", "earlier"]           # anti-chr
 
 # Same Sentence Lead Words  Ex. (After X, then Y happened. -> X before Y)
 ###############################################################################
-CHRON_LEAD = ['after']                               # A before B
+CHRON_LEAD = ['after', 'following']                  # A before B
 ACHRON_LEAD = ['before', 'until', 'till', 'til']     # B before A
 
 # Same Sentence Conjunction Words

@@ -160,7 +160,6 @@ class TemporalAnalyzer(object):
 
         returns [list of event instances]
         """
-        print len(event_tree_list)
         event_instances = []
         for event_tree in event_tree_list:
             prior_event_matched = util.best_event_match(self.events, " ".join(event_tree.leaves()), 0.20)
@@ -169,7 +168,6 @@ class TemporalAnalyzer(object):
                 #print "%s refers to %s" % (e, best_match)
             else:
                 e = Event(event_tree)
-            print 'event', e
             event_instances.append(e)
         sentence.events = event_instances
         return event_instances
@@ -287,7 +285,7 @@ class TemporalAnalyzer(object):
         """
         if not filename:
             filename = config.PATH_TO_SHELVE + self.filename.split("/")[-1]
-        print filename
+        print "Stored a shelved copy at" + filename
         d = shelve.open(filename)
         d['temporal_analyzer'] = self
         d.close()
@@ -341,8 +339,11 @@ def bootstrap(mode_args):
 
 
 def analyze(mode_args, analyzer):
+    print "ANANNDSANDNSADNA"
     if mode_args['analysis_mode'] == 'query':
+        print "fdsfdsfd"
         query_collection = QueryCollection(mode_args['analysis_data'])
+        print query_collection
         query_collection.execute(analyzer.events, analyzer.order_data_store, analyzer.time_data_store)
     elif mode_args['analysis_mode'] == 'interactive':
         #os.system('clear')

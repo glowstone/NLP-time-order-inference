@@ -200,7 +200,6 @@ def score_catalog_match(catalog, observed):
 	for catalog_word in catalog.get_items():
 		for observed_word in observed:
 			if catalog_word.lower() == observed_word.lower():
-				print "incrementing"
 				catalog.increment_score(1)
 	return catalog
 
