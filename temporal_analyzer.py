@@ -85,6 +85,7 @@ class TemporalAnalyzer(object):
         self.construct_events(sentence, ordered_event_trees)           
         self.ordering_analysis(sentence)
         self.temporal_analysis(sentence)
+        self.process_relative_times(sentence)
 
         real_events = filter(lambda event: isinstance(event, Event), sentence.events)
         return (True, real_events, None)
@@ -177,7 +178,8 @@ class TemporalAnalyzer(object):
             sentence.conjunction_word_clues = []                             # No conjunction clue words
         
             print "Ordering not yet supported for this sentence, but it will be."
-            #sentence.pprint()
+
+             # sentence.pprint()
 
         elif len(ordered_events) == 2:
             first_event = ordered_events[0]
@@ -196,7 +198,6 @@ class TemporalAnalyzer(object):
             else:
                 self.order_data_store.record_order(second_event, first_event)
 
-            #sentence.pprint()
             print self.order_data_store
 
         else:
@@ -214,6 +215,24 @@ class TemporalAnalyzer(object):
         """
 
         pass
+
+    def process_relative_times(self, sentence):
+        """
+        Takes a Sentence with its sentence.events property populated. Analyzes Events to find relative time information
+        of the form "two weeks before <ReferenceEvent>, <AbstractEvent>". This allows an absolute time to be given to
+        the AbstractEvent based on the absolute time of the ReferenceEvent.
+
+        Mutates Event.best_time for the Event referred to by the ReferenceEvent
+
+        returns None
+        """
+        if len(sentence.events) == 2:
+            first_event = sentence.events[0]
+            second_event = sentence.events[1]
+            if isinstance(first_event, ReferenceEvent):
+                util.event_timex_analysis(first_event, second_event)
+            if isinstance(second_event, ReferenceEvent):
+                util.event_timex_analysis(second_event, first_event)
 
 
     def shelve_processed_data(self, filename=None):

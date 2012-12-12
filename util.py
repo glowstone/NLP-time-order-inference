@@ -9,6 +9,8 @@ from nltk.corpus import stopwords
 # Local Modules
 import config
 import catalogs
+from timex import tag, ground
+from date_models import Date
 
 
 ENGLISH_STOPWORDS = stopwords.words("english")
@@ -113,7 +115,6 @@ def best_event_match(events, text, threshold_percentage):
 		# print "Event score %s not above threshold %s" % (score, threshold)
 		return None
 
-	print "Best score: %s" % score
 	# print "For match %s,  %s" % (text, best_event.text)
 	return best_event
 
@@ -191,7 +192,7 @@ def aux_phrase_subtree(tree, tag_list):
 	returns subtree with the greatest height that is not the original tree
 	"""
 	highest_subtree = max([(0, None)]+[(subtree.height(), subtree) for subtree in tree.subtrees(lambda x: x.node in tag_list) if subtree != tree[0]])[1]
-	print highest_subtree
+	# print highest_subtree
 	return highest_subtree
 
 
@@ -234,4 +235,49 @@ def nested_pop(nested_list, indices):
 		return nested_list.pop(indices[0])
 
 
+def event_timex_analysis(event1, event2):
+        """
+        Attempts to use timex.tag and timex.ground to find relations like "two weeks before". If this ReferenceEvent
+        refers to an event with an absolute time, then we can use the "two weeks before" to figure out exactly what
+        time that means.
+        """
+        tagged = tag(event1.text)
+        base_time = event1.get_best_time()
+
+        if base_time is not None:
+            dt, trusted = base_time.to_datetime()   # Get the datetime representation of the reference's best_time
+            grounded_times = ground(tagged, dt)     # Ground any timex tags to that time
+            new_dates = []                          # holds new dates constructed from the grounded datetimes
+
+            for time in grounded_times:
+                new_date = Date()
+                if trusted['year']:
+                    new_date.year = time.year
+
+                if trusted['month']:
+                    new_date.month = time.month
+
+                if trusted['day']:
+                    new_date.day = time.day
+
+                if trusted['hour']:
+                    new_date.hour = time.hour
+
+                if trusted['minute']:
+                    new_date.minute = time.minute
+
+                new_dates.append(new_date)
+
+            if len(new_dates) == 0:     # Nothing interesting found.
+                return
+
+            new_dates = sorted(new_dates, lambda x: x.precision(), reverse=True)
+            best_date = new_dates[0]
+
+            other_best_date = event2.get_best_time()
+            if other_best_date is not None:
+                if best_date.precision() > other_best_date.precision():
+                    event2.set_best_time(best_date)
+            else:
+                event2.set_best_time(best_date)
 

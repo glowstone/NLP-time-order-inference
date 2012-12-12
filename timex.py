@@ -186,6 +186,7 @@ def ground(tagged_text, base_date):
                 timex_found)
 
     # Calculate the new date accordingly
+    timex_vals = []
     for timex in timex_found:
         timex_val = 'UNKNOWN' # Default value
 
@@ -313,8 +314,8 @@ def ground(tagged_text, base_date):
         # # Substitute tag+timex in the text with grounded tag+timex.
         # tagged_text = re.sub('<TIMEX2>' + timex_ori + '</TIMEX2>', '<TIMEX2 val=\"' \
         #     + timex_val + '\">' + timex_ori + '</TIMEX2>', tagged_text)
-
-    return timex_val
+        timex_vals.append(timex_val)
+    return timex_vals
 
 ####
 

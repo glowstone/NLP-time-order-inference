@@ -1,5 +1,6 @@
 from util import extract_entities
 from find_temporals import find_temporals
+from date_models import Date
 from util import stanford_parse
 from nltk.tree import ParentedTree
 
@@ -18,11 +19,20 @@ class AbstractEvent(object):
 class Event(AbstractEvent):
     def __init__(self, tree):
         super(Event, self).__init__(tree)
-        self.absolute_times = find_temporals(self.text)
-        if len(self.absolute_times) > 0:
-            self.best_time = sorted(self.absolute_times, key=lambda x: x.precision(), reverse=True)[0]
+        self.find_best_time()
+
+    def find_best_time(self):
+        absolute_times = find_temporals(self.text)
+        if len(absolute_times) > 0:
+            self.best_time = sorted(absolute_times, key=lambda x: x.precision(), reverse=True)[0]
         else:
             self.best_time = None
+
+    def get_best_time(self):
+        return self.best_time
+
+    def set_best_time(self, time):
+        self.best_time = time
 
     def __repr__(self):
         return '<Event %s>' % self.text
@@ -34,7 +44,7 @@ class ReferenceEvent(AbstractEvent):
         assert(isinstance(event, Event))           # Cannot refer to another ReferenceEvent
         self.referenced_event = event
         self.reference_times = []                  
-        self.sync_times()         
+        self.sync_times()
 
     def add_reference(self, event):
         self.reference = event
@@ -52,22 +62,24 @@ class ReferenceEvent(AbstractEvent):
         """
         times = find_temporals(self.text)
         if len(times) > 0:
-            self.best_time = sorted(times, key=lambda x: x.precision(), reverse=True)[0]
-            precision = self.best_time.precision()
+            best_time = sorted(times, key=lambda x: x.precision(), reverse=True)[0]
+            precision = best_time.precision()
+
             try:
-                other_precision = self.reference.best_time.precision()
+                other_precision = self.reference.get_best_time().precision()
+
             except AttributeError:  # There is no best_time on the reference, so anything is better!
                 other_precision = 0
+
             if precision > other_precision:
-                self.reference.best_time = self.best_time
+                self.reference.set_best_time(best_time)
+
             else:
-                print "HERE"
-                self.best_time = self.reference.best_time
-        else:
-            if self.reference.best_time:
-                self.best_time = self.reference.best_time
-            else:
-                self.best_time = None
+                best_time = self.reference.get_best_time()
+
+
+    def get_best_time(self):
+        return self.reference.get_best_time()
 
     def __repr__(self):
         return '<ReferenceEvent %s>' % self.text
