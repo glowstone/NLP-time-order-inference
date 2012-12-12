@@ -41,6 +41,7 @@ class TemporalAnalyzer(object):
     def __init__(self, filename):
         self.filename = filename                    
         self.time_data_store = TimeDataStore()
+        Event.time_data_store = self.time_data_store
         self.order_data_store = OrderDataStore()
         self.sentences = []                           # All valid sentences
         self.events = []                              # All valid events
@@ -155,7 +156,7 @@ class TemporalAnalyzer(object):
                 e = ReferenceEvent(event_tree, prior_event_matched)
                 #print "%s refers to %s" % (e, best_match)
             else:
-                e = Event(event_tree, self.time_data_store)
+                e = Event(event_tree)
             event_instances.append(e)
         sentence.events = event_instances
         return event_instances

@@ -17,23 +17,24 @@ class AbstractEvent(object):
 
 
 class Event(AbstractEvent):
-    def __init__(self, tree, time_data_store):
+    time_data_store = None      # Static TimeDataStore
+    
+    def __init__(self, tree):
         super(Event, self).__init__(tree)
-        self.time_data_store = time_data_store
         self.find_best_time()
 
     def find_best_time(self):
         absolute_times = find_temporals(self.text)
         if len(absolute_times) > 0:
-            self.time_data_store.record_event(self, sorted(absolute_times, key=lambda x: x.precision(), reverse=True)[0])
+            Event.time_data_store.record_event(self, sorted(absolute_times, key=lambda x: x.precision(), reverse=True)[0])
         else:
-            self.time_data_store.add_event(self)
+            Event.time_data_store.add_event(self)
 
     def get_best_time(self):
-        return self.time_data_store.query_time(self)
+        return Event.time_data_store.query_time(self)
 
     def set_best_time(self, time):
-        self.time_data_store.record_event(self, time)
+        Event.time_data_store.record_event(self, time)
 
     def __repr__(self):
         return '<Event %s>' % self.text
