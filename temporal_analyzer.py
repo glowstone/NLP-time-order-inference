@@ -20,8 +20,8 @@ class Sentence(object):
         self.pos_tagged = None                   # List of (word, Stanford Parse POS Tag) tuples
         self.entity_tagged = None                # NLTK tree.tree of entity tags
         self.leading_word_clues = []                        
-        self.conjunction_word_clues = []            # Ordered list
-        self.events = []                                # Ordered list
+        self.conjunction_word_clues = []
+        self.events = []                         # Ordered List
 
     def pprint(self):
         print "parse_tree", self.parse_tree
@@ -43,7 +43,7 @@ class TemporalAnalyzer(object):
         self.time_data_store = TimeDataStore()
         self.order_data_store = OrderDataStore()
         self.sentences = []                           # All valid sentences
-        self.events = []                              # All valid events
+        self.events = []                              # All valid Events (not AbstractEvents)
         
         # Initialization
         self.parse_textual_data(filename)
@@ -78,7 +78,6 @@ class TemporalAnalyzer(object):
         sentence.parse_tree = nltk.tree.Tree(util.stanford_parse(sentence.text))
         sentence.pos_tagged = sentence.parse_tree.pos()                       # Get POS tags from Stanford Parse Tree.
         sentence.entity_tagged = util.entity_tag_sentence(sentence.pos_tagged)  
-        # TODO entity tagging happens here and in Event.__init__
 
         (success, ordered_event_trees) = self.extract_events(sentence)
         if not success:
@@ -87,7 +86,8 @@ class TemporalAnalyzer(object):
         self.ordering_analysis(sentence)
         self.temporal_analysis(sentence)
 
-        return (True, sentence.events, None)
+        real_events = filter(lambda event: isinstance(event, Event), sentence.events)
+        return (True, real_events, None)
 
 
     def retrieve_remaining_event(self, tree, known_event, known_event_start, known_event_end):
@@ -177,7 +177,7 @@ class TemporalAnalyzer(object):
             sentence.conjunction_word_clues = []                             # No conjunction clue words
         
             print "Ordering not yet supported for this sentence, but it will be."
-            sentence.pprint()
+            #sentence.pprint()
 
         elif len(ordered_events) == 2:
             first_event = ordered_events[0]
@@ -196,7 +196,7 @@ class TemporalAnalyzer(object):
             else:
                 self.order_data_store.record_order(second_event, first_event)
 
-            sentence.pprint()
+            #sentence.pprint()
             print self.order_data_store
 
         else:
@@ -267,22 +267,23 @@ def bootstrap(mode_args):
         text_filename = mode_args['bootstrap_data']
         analyzer = TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
+        return analyzer
     elif mode_args['bootstrap_mode'] == 'load':
         shelve_filename = mode_args['bootstrap_data']
         d = shelve.open(config.PATH_TO_SHELVE + shelve_filename)
         analyzer = d['temporal_analyzer']
+        return analyzer
     else:
         error("Invalid Bootstrapping Mode")
 
 
-def analyze(mode_args):
+def analyze(mode_args, analyzer):
     if mode_args['analysis_mode'] == 'query':
         query_collection = QueryCollection(mode_args['analysis_data'])
         #query_collection.execute()
     elif mode_args['analysis_mode'] == 'interactive':
         os.system('clear')
         sys.ps1 = "interpreter>>"
-        global analyzer
         os.environ['PYTHONINSPECT'] = 'True'
     else:
         error("Invalid Analysis Mode")
@@ -328,6 +329,6 @@ if __name__ == "__main__":
         if name == '-v' or name == '--verbose':
             mode_args['verbose_mode'] = True
 
-    bootstrap(mode_args)
-    analyze(mode_args)
+    analyzer = bootstrap(mode_args)
+    analyze(mode_args, analyzer)
     
