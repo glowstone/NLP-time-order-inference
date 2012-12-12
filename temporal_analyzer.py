@@ -69,6 +69,7 @@ class TemporalAnalyzer(object):
                 if valid:
                     self.sentences.append(sentence)
                     self.events.extend(event_list)
+        self.time_data_store = Event.time_data_store
 
 
     def parse_sentence(self, sentence, prev_event):
@@ -342,7 +343,7 @@ def bootstrap(mode_args):
 def analyze(mode_args, analyzer):
     if mode_args['analysis_mode'] == 'query':
         query_collection = QueryCollection(mode_args['analysis_data'])
-        #query_collection.execute()
+        query_collection.execute(analyzer.events, analyzer.order_data_store, analyzer.time_data_store)
     elif mode_args['analysis_mode'] == 'interactive':
         #os.system('clear')
         sys.ps1 = "interpreter>>"

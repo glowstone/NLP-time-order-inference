@@ -24,24 +24,29 @@ class QueryCollection(object):
             self.queries.append(query_kinds[0](*arguments))     #Instantiate TimeQuery or OrderQuery
             line = f.readline()
 
-    def execute(self):
+    def execute(self, all_events, order_data_store, time_data_store):
         for query in self.queries:
-            query.execute()
+            if isinstance(query, TimeQuery):
+                query.execute(all_events, time_data_store)
+            elif isinstance(query, OrderQuery):
+                query.execute(all_events, order_data_store)
+            else:
+                pass              # Unrecognized Query Type
 
 
 class Query(object):
-    def __init__(self):
-        pass
+    def __init__(self, text):
+        self.text = text
 
 class TimeQuery(Query):
     shorthand = 'TIME_QUERY'
     argument_lines = 1
-    def __init__(self, events, event_desc_a):       # TODO this is kind of ugly to have to pass the events in here...
-        self.events = events
+    def __init__(self, event_desc_a):       # TODO this is kind of ugly to have to pass the events in here...
         self.event_desc_a = event_desc_a
 
-    def execute(self):
+    def execute(self, events, time_data_store):
         event = best_event_match(self.events, self.event_desc_a, 0.10)
+
         if event:
             time = event.get_best_time()
             if not time:
@@ -53,26 +58,32 @@ class TimeQuery(Query):
 class OrderQuery(Query):
     shorthand = 'ORDER_QUERY'
     argument_lines = 2
-    def __init__(self, events, event_desc_a, event_desc_b):
-        self.events = events
+    def __init__(self, event_desc_a, event_desc_b):
         self.event_desc_a = event_desc_a
         self.event_desc_b = event_desc_b
 
-    def execute(self):
-        event1 = best_event_match(self.events, self.event_desc_a, 0.10)
-        event2 = best_event_match(self.events, self.event_desc_b, 0.10)
+    def execute(self, events, order_data_store):
+        event1 = best_event_match(events, self.event_desc_a, 0.10)
+        event2 = best_event_match(events, self.event_desc_b, 0.10)
 
-        print event1
-        print event2
-
-        if event1 and event2:
-            # If we can do the comparison based on absolute times, then do that
-            if event1.absolute_times and event2.absolute_times:
-                if event1.absolute_times[0] > event2.absolute_times[0]:
-                    return "%s happened before %s" % (event2, event1)
-                elif event1.absolute_times[0] < event2.absolute_times[0]:
-                    return "%s happened before %s" % (event1, event2)
-                else:
-                    return "%s and %s happend at the same time, %s" % (event1, event2, event1.absolute_times[0])
+        result = order_data_store.query_order(event1, event2)
+        if result:
+            print result
         else:
-            return None
+            print "Sorry, this query failed."
+
+
+        # print event1
+        # print event2
+
+        # if event1 and event2:
+        #     # If we can do the comparison based on absolute times, then do that
+        #     if event1.absolute_times and event2.absolute_times:
+        #         if event1.absolute_times[0] > event2.absolute_times[0]:
+        #             return "%s happened before %s" % (event2, event1)
+        #         elif event1.absolute_times[0] < event2.absolute_times[0]:
+        #             return "%s happened before %s" % (event1, event2)
+        #         else:
+        #             return "%s and %s happend at the same time, %s" % (event1, event2, event1.absolute_times[0])
+        # else:
+        #     return None
