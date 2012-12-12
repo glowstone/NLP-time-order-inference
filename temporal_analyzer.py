@@ -194,7 +194,7 @@ class TemporalAnalyzer(object):
             self.order_data_store.add_event(event_two)
 
             # Determine ordering of Events within current sentence
-            order = util.same_sent_order(sentence.lead_words, sentence.conj_words, event_one, event_two)
+            order = util.same_sent_order(sentence.lead_words, sentence.conj_words)
             
             if order == 'chron':
                 self.order_data_store.record_order(event_one, event_two)

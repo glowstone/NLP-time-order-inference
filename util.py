@@ -145,7 +145,11 @@ def extract_entities(event):
 	
 	return entities
 
-def same_sent_order(leading, conjunction, first_event, second_event):
+
+
+
+
+def same_sent_order(leading, conjunction):
 	"""
 	Infer whether the first or second Event occurred first using leading word and conjunction word
 	observations
