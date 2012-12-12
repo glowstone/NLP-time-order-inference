@@ -1,0 +1,7 @@
+# Simple Ordering Example (only contains Events, no ReferenceEvents at all)
+# Demonstrates ordering by conjunction
+# Demonstrates ordering by lead phrase
+
+Sarah traveled home to Cambridge after Alice was at the galleria.    # Alice... -> [Sarah...]
+After the game ended, Sally ate cotton candy.                        # Game... -> [Sally...]
+Until the blizzard killed Bill, Bill was playing outside.            # Bill playing... -> [Blizzard killed...]

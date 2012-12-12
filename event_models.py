@@ -44,18 +44,15 @@ class ReferenceEvent(AbstractEvent):
     def __init__(self, tree, event):
         super(ReferenceEvent, self).__init__(tree)
         assert(isinstance(event, Event))           # Cannot refer to another ReferenceEvent
-        self.referenced_event = event
+        self.reference = event                     # The referenced Event
         self.reference_times = []                  
         self.sync_times()
-
-    def add_reference(self, event):
-        self.reference = event
 
     def refers_to(self):
         """
         Returns the Event the ReferenceEvent refers to. 
         """
-        return self.referenced_event
+        return self.reference
 
     def sync_times(self):
         """

@@ -156,20 +156,27 @@ def same_sent_order(lead_words, conj_words):
 
 	returns Boolean of whether event ordering should be chronological
 	"""
-	lead_catalogs = [ScoredCatalog(CHRON_LEAD, 'chron'), ScoredCatalog(ACHRON_LEAD, 'achron')]
-	conj_catalogs = [ScoredCatalog(CHRON_CONJS, 'chron'), ScoredCatalog(ACHRON_CONJS, 'achron')]
+	lead_catalogs = [ScoredCatalog('chron', CHRON_LEAD), ScoredCatalog('achron', ACHRON_LEAD)]
+	conj_catalogs = [ScoredCatalog('chron', CHRON_CONJS), ScoredCatalog('achron', ACHRON_CONJS)]
 	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
+
+	print lead_words
+
+	print conj_words
 
 	# Decide among the chronological and anti-chronological catalogs for lead words and conj words
 	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
 	conj_decision = max([score_catalog_match(catalog, conj_words) for catalog in conj_catalogs])
 	#uord_decision = score_ordering_match(unordered_catalog, [])
-	unordered = (0.5, ScoredCatalog([], 'unordered'))
+	unordered = (0.5, ScoredCatalog('unordered', []))
+
+	print lead_decision
+	print conj_decision
 
 	# Determine the dominant chronology decision by comparing catalog scores
 	dominant_clue = max(unordered, lead_decision, conj_decision)[1]
-	print dominant_clue
-	return dominant_clue
+	print dominant_clue, dominant_clue.get_score()
+	return dominant_clue.get_name()
 
 
 def score_catalog_match(catalog, observed):
