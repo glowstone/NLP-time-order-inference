@@ -98,9 +98,9 @@ class OrderDataStore(object):
         if time_data_store.query_time(event_a) and time_data_store.query_time(event_b):
             time_a = time_data_store.query_time(event_a)
             time_b = time_data_store.query_time(event_b)
-            if time_a > time_b:
+            if time_a < time_b:
                 return "%s occurred before %s" % (event_a, event_b)
-            elif time_a < time_b:
+            elif time_a > time_b:
                 return "%s occurred after %s" % (event_a, event_b)
             else:
                 return self.query_order(event_a, event_b)
