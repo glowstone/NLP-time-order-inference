@@ -31,7 +31,7 @@ class TimeDataStore(object):
         Adds later_event to the list of events that follow prior_event
         """
         if event in self.time_table:
-            #merged_time = util.merge_time(self.time_table[event], )# Call to merge our date objects if that exists
+            #merged_time = util.merge_time(self.time_table[event], new_time_object )# Call to merge our date objects if that exists
             merged_time = {}
             self.time_table[event] = merged_time
 
@@ -55,7 +55,7 @@ class OrderDataStore(object):
         """
         returns the list of all events for which ordering relationships were recorded
         """
-        return self.order_tables.keys()
+        return self.order_table.keys()
 
 
     def add_event(self, event):
@@ -83,13 +83,13 @@ class OrderDataStore(object):
         a_before_b = event_b in self.order_table[event_a]
         b_before_a = event_a in self.order_table[event_b]
         if a_before_b and b_before_a:
-            return "conflicting"
+            return "Ordering information about these events %s" % (event_a, event_b)
         elif a_before_b:
-            return "before"
+            return "%s occurred before %s" % (event_a, event_b)
         elif b_before_a:
-            return "after"
+            return "%s occurred after %s" % (event_a, event_b)
         else:
-            return  "not enough info"
+            return  "Not enough info to determine order between %s and %s" % (event_a, event_b)
 
     def depth_first_search(self, event_a, event_b):
         """

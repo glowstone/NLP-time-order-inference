@@ -38,6 +38,9 @@ class ReferenceEvent(AbstractEvent):
     def add_reference(self, event):
         self.reference = event
 
+    def refers_to(self):
+        pass
+
     def sync_times(self):
         """
         Attempts to convey any extra temporal information from this event to its reference, and vice versa (with the

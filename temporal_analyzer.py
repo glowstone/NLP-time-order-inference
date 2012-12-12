@@ -265,7 +265,7 @@ def bootstrap(mode_args):
     if mode_args['bootstrap_mode'] == 'input':
         #Create a TemporalAnalyzer instance
         text_filename = mode_args['bootstrap_data']
-        analyzer= TemporalAnalyzer(text_filename)
+        analyzer = TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
     elif mode_args['bootstrap_mode'] == 'load':
         shelve_filename = mode_args['bootstrap_data']
@@ -282,6 +282,7 @@ def analyze(mode_args):
     elif mode_args['analysis_mode'] == 'interactive':
         os.system('clear')
         sys.ps1 = "interpreter>>"
+        global analyzer
         os.environ['PYTHONINSPECT'] = 'True'
     else:
         error("Invalid Analysis Mode")
