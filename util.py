@@ -157,13 +157,13 @@ def cross_sent_order(lead_words):
 	lead_catalogs = [ScoredCatalog('chron', CROSS_CHRON_LEAD), ScoredCatalog('achron', CROSS_ACHRON_LEAD)]
 	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
 
-	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
-	unordered = (0.5, ScoredCatalog('unordered', []))
+	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs], key=lambda catalog: catalog.get_score())
+	unordered_decision = score_catalog_match(unordered_catalog, [])
 
 	# Determine the dominant chronology decision by comparing catalog scores
-	dominant_clue = max(unordered, lead_decision)[1]
-	print dominant_clue, dominant_clue.get_score()
-	return dominant_clue.get_name()
+	winning_catalog = max([unordered_decision, lead_decision], key=lambda catalog: catalog.get_score())
+	print winning_catalog, winning_catalog.get_score()
+	return winning_catalog.get_name()
 
 
 def same_sent_order(lead_words, conj_words):
@@ -178,15 +178,14 @@ def same_sent_order(lead_words, conj_words):
 	unordered_catalog = ScoredCatalog([], 'unordered', 0.5)
 
 	# Decide among the chronological and anti-chronological catalogs for lead words and conj words
-	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs])
-	conj_decision = max([score_catalog_match(catalog, conj_words) for catalog in conj_catalogs])
-	#uord_decision = score_ordering_match(unordered_catalog, [])
-	unordered = (0.5, ScoredCatalog('unordered', []))
+	lead_decision = max([score_catalog_match(catalog, lead_words) for catalog in lead_catalogs], key=lambda catalog: catalog.get_score())
+	conj_decision = max([score_catalog_match(catalog, conj_words) for catalog in conj_catalogs], key=lambda catalog: catalog.get_score())
+	unordered_decision = score_catalog_match(unordered_catalog, [])
 
 	# Determine the dominant chronology decision by comparing catalog scores
-	dominant_clue = max(unordered, lead_decision, conj_decision)[1]
-	print dominant_clue, dominant_clue.get_score()
-	return dominant_clue.get_name()
+	winning_catalog = max([unordered_decision, lead_decision, conj_decision], key=lambda catalog: catalog.get_score())
+	print winning_catalog, winning_catalog.get_score()
+	return winning_catalog.get_name()
 
 
 def score_catalog_match(catalog, observed):
@@ -196,12 +195,14 @@ def score_catalog_match(catalog, observed):
 	Scores the given catalog based on matches found with observations
 
 	observed is list of observed words such as ['now', 'that']
+	returns the catalog, with its score now updated
 	"""
 	for catalog_word in catalog.get_items():
 		for observed_word in observed:
 			if catalog_word.lower() == observed_word.lower():
+				print "incrementing"
 				catalog.increment_score(1)
-	return (catalog.get_score(), catalog)
+	return catalog
 
 
 	# score = catalog.initial_score                  # Chronological orderings favored over anit-chronological orderings

@@ -212,6 +212,7 @@ class TemporalAnalyzer(object):
     
         returns None
         """
+        # Performed during Event creation in this design
         pass
 
 
@@ -343,7 +344,7 @@ def analyze(mode_args, analyzer):
         query_collection = QueryCollection(mode_args['analysis_data'])
         #query_collection.execute()
     elif mode_args['analysis_mode'] == 'interactive':
-        os.system('clear')
+        #os.system('clear')
         sys.ps1 = "interpreter>>"
         os.environ['PYTHONINSPECT'] = 'True'
     else:
