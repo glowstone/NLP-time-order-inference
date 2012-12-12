@@ -8,9 +8,9 @@ from nltk.corpus import stopwords
 
 # Local Modules
 import config
-import catalogs
 from timex import tag, ground
 from date_models import Date
+from catalogs import WordCatalog, CHRON_LEAD, ACHRON_LEAD, CHRON_CONJS, ACHRON_CONJS
 
 
 ENGLISH_STOPWORDS = stopwords.words("english")
@@ -145,23 +145,24 @@ def extract_entities(event):
 	
 	return entities
 
-def infer_ordering(leading, conjunction, first_event, second_event):
+def same_sent_order(leading, conjunction, first_event, second_event):
 	"""
 	Infer whether the first or second Event occurred first using leading word and conjunction word
 	observations
 
 	returns Boolean of whether event ordering should be chronological
 	"""
-	lead_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_LEAD, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_LEAD)]
-	conj_catalogs = [catalogs.CustomCatalog(catalogs.CHRON_CONJS, True, 0.5), catalogs.CustomCatalog(catalogs.ACHRON_CONJS)]
+	lead_catalogs = [WordCatalog(CHRON_LEAD, 'chron'), WordCatalog(ACHRON_LEAD, 'achron')]
+	conj_catalogs = [WordCatalog(CHRON_CONJS, 'chron'), WordCatalog(ACHRON_CONJS, 'achron')]
 	
 	# Useful to see leading and conjunction conflicts for tweaking
 	leading_winner = max([score_ordering_match(leading, catalog) for catalog in lead_catalogs])
 	conjunction_winner = max([score_ordering_match(conjunction, catalog) for catalog in conj_catalogs])
-	
-	dominant_clue = max(leading_winner, conjunction_winner)[1]
+	unordered = (0.5, WordCatalog([], 'unordered'))
+
+	dominant_clue = max(unordered, leading_winner, conjunction_winner)[1]
 	print dominant_clue
-	return dominant_clue.get_chron()	
+	return dominant_clue
 
 
 def score_ordering_match(observed, catalog):
@@ -180,10 +181,6 @@ def score_ordering_match(observed, catalog):
 	#score = sum(exact_match(observed_item, catalog_item) for observed_item in observed)
 
 	#return score
-
-	
-
-
 
 def aux_phrase_subtree(tree, tag_list):
 	"""

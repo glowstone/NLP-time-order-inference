@@ -19,16 +19,15 @@ ACHRON_CONJS = ["after", "now that", "as soon as", "since"]
 
 
 
-class CustomCatalog(object):
-	def __init__(self, items, chronological=False, initial_score=0):
-		self.items = items                         # Exhaustive list of words in the catalog
-		# Boolean of whether this a catalog of words corresponding to chronological ordering of events
-		self.chron = chronological                 
-		self.initial_score = initial_score         # initial_score used to prefer one Catalog over another
+class WordCatalog(object):
+	def __init__(self, name, items, initial_score=0):
+		self.name = name                       # Useful WordCatalog name
+		self.items = items                     # Exhaustive list of words in the catalog                                    
+		self.initial_score = initial_score     # initial_score used to prefer one WordCatalog over another
 
-	def get_chron(self):
-		"""returns the chron property of the CustomCatalog"""
-		return self.chron
+	def get_name(self):
+		"""returns the string name of the WordCatalog type"""
+		return self.name
 
 	def __repr__(self):
-		return '<CustomCatalog %s>' % self.chron
+		return '<ScoredCatalog %s>' % self.name

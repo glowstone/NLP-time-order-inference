@@ -19,16 +19,16 @@ class Sentence(object):
         self.parse_tree = None                   # Stanford Parse Tree
         self.pos_tagged = None                   # List of (word, Stanford Parse POS Tag) tuples
         self.entity_tagged = None                # NLTK tree.tree of entity tags
-        self.leading_word_clues = []                        
-        self.conjunction_word_clues = []
+        self.lead_words = []                        
+        self.conj_words = []
         self.events = []                         # Ordered List
 
     def pprint(self):
         print "parse_tree", self.parse_tree
         print "pos_tagged", self.pos_tagged
         print "entity_tagged", self.entity_tagged
-        print "leading_word_clues", self.leading_word_clues
-        print "conjunction_word_clues", self.conjunction_word_clues
+        print "lead_words", self.lead_words
+        print "conj_words", self.conj_words
         for event in self.events:
             print "Event:"
             print event
@@ -166,7 +166,7 @@ class TemporalAnalyzer(object):
         and subordinating conjunction clue words that give ordering information. 
         Infers an ordering of the Events and updates the OrderDataStore.
 
-        Mutates sentence.leading_word_clues, sentence.conjunction_word_clues, OrderDataStore
+        Mutates sentence.lead_words, sentence.conj_words, OrderDataStore
 
         returns None
         """
@@ -174,29 +174,35 @@ class TemporalAnalyzer(object):
 
         if len(ordered_events) == 1:
             event = ordered_events[0]
-            sentence.leading_word_clues = event.parse_tree.leaves()[:1]      # Leading word
-            sentence.conjunction_word_clues = []                             # No conjunction clue words
+            sentence.lead_words = event.parse_tree.leaves()[:1]   # Leading word
+            sentence.conj_words = []                              # No conjunction  words
         
             print "Ordering not yet supported for this sentence, but it will be."
 
              # sentence.pprint()
 
+             # util.cross_sentence_order()
+
         elif len(ordered_events) == 2:
-            first_event = ordered_events[0]
-            second_event = ordered_events[1]
-            sentence.leading_word_clues = first_event.parse_tree.leaves()[:1]   # Leading word    
-            # Longest subordinating conjunction has 3 words such as 'as soon as'  
-            sentence.conjunction_word_clues = second_event.parse_tree.leaves()[:3]
+            event_one = ordered_events[0]
+            event_two = ordered_events[1]
+            sentence.lead_words = event_one.parse_tree.leaves()[:1]        # Leading word    
+            sentence.conj_words = event_two.parse_tree.leaves()[:3]    # Longest subordinating conjunction has 3 words such as 'as soon as'  
+            
 
-            (leading, conjunction) = (sentence.leading_word_clues, sentence.conjunction_word_clues) 
-            chronological = util.infer_ordering(leading, conjunction, first_event, second_event)
+            self.order_data_store.add_event(event_one)
+            self.order_data_store.add_event(event_two)
 
-            self.order_data_store.add_event(first_event)
-            self.order_data_store.add_event(second_event)
-            if chronological:
-                self.order_data_store.record_order(first_event, second_event)
-            else:
-                self.order_data_store.record_order(second_event, first_event)
+            # Determine ordering of Events within current sentence
+            order = util.same_sent_order(sentence.lead_words, sentence.conj_words, event_one, event_two)
+            
+            if order == 'chron':
+                self.order_data_store.record_order(event_one, event_two)
+            elif order == 'achron':
+                self.order_data_store.record_order(event_two, event_one)
+            else:   # unordered
+                pass
+
 
             print self.order_data_store
 
