@@ -242,7 +242,7 @@ def event_timex_analysis(event1, event2):
         time that means.
         """
         tagged = tag(event1.text)
-        base_time = event1.reference.best_time
+        base_time = event1.get_best_time()
 
         if base_time is not None:
             dt, trusted = base_time.to_datetime()   # Get the datetime representation of the reference's best_time
@@ -274,10 +274,10 @@ def event_timex_analysis(event1, event2):
             new_dates = sorted(new_dates, lambda x: x.precision(), reverse=True)
             best_date = new_dates[0]
 
-            other_best_date = event2.best_time
+            other_best_date = event2.get_best_time()
             if other_best_date is not None:
                 if best_date.precision() > other_best_date.precision():
-                    event2.best_time = best_date
+                    event2.set_best_time(best_date)
             else:
-                event2.best_time = best_date
+                event2.set_best_time(best_date)
 
