@@ -163,7 +163,7 @@ def cross_sent_order(lead_words):
 
     # Determine the dominant chronology decision by comparing catalog scores
     winning_catalog = max([unordered_decision, lead_decision], key=lambda catalog: catalog.get_score())
-    print winning_catalog, winning_catalog.get_score()
+    # print winning_catalog, winning_catalog.get_score()
     return winning_catalog.get_name()
 
 
@@ -185,7 +185,7 @@ def same_sent_order(lead_words, conj_words):
 
     # Determine the dominant chronology decision by comparing catalog scores
     winning_catalog = max([unordered_decision, lead_decision, conj_decision], key=lambda catalog: catalog.get_score())
-    print winning_catalog, winning_catalog.get_score()
+    # print winning_catalog, winning_catalog.get_score()
     return winning_catalog.get_name()
 
 
