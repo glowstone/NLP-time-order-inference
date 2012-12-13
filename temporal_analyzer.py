@@ -285,7 +285,7 @@ class TemporalAnalyzer(object):
         """
         if not filename:
             filename = config.PATH_TO_SHELVE + self.filename.split("/")[-1]
-        print "Stored a shelved copy at" + filename
+        # print "Stored a shelved copy at" + filename
         d = shelve.open(filename)
         d['temporal_analyzer'] = self
         d.close()
@@ -342,7 +342,7 @@ def bootstrap(mode_args):
 def analyze(mode_args, analyzer):
     if mode_args['analysis_mode'] == 'query':
         query_collection = QueryCollection(mode_args['analysis_data'])
-        print query_collection
+        # print query_collection
         query_collection.execute(analyzer.events, analyzer.order_data_store, analyzer.time_data_store)
     elif mode_args['analysis_mode'] == 'interactive':
         #os.system('clear')

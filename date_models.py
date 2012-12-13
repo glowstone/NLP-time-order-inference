@@ -86,7 +86,7 @@ class Date():
 				string += " at "
 				string += str(self.hour)
 				if self.minute is not None:
-					string += ":%2d" % self.minute
+					string += ":%02d" % self.minute
 				else:
 					string += ":00"
 		else:
@@ -95,7 +95,7 @@ class Date():
 				if self.hour is not None:
 					string += " at %s" % self.hour
 					if self.minute is not None:
-						string += ":%2d" % self.minute
+						string += ":%02d" % self.minute
 					else:
 						string += ":00"
 		if string == "":

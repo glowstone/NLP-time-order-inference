@@ -45,7 +45,7 @@ class TimeQuery(Query):
 
         result = time_data_store.query_time(event)
         if result:
-            print result
+            print "%s occured %s" % (event, result)
         else:
             print "Sorry, TimeQuery failed."
 
