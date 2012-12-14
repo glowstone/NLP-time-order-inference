@@ -1,12 +1,12 @@
 
-6863-final-project is a system to process texts, extract events from the texts, and extract timing and ordering information about events in the text. Sentences in the text are analyzed to build a queryable data structure which maintains the best available time information about each event and the relative orderings of events based on time and text context information. Can also determine whether a given text is temporally logical in its event relationships. Also includes a mini-query language for making time and ordering queries about extracted events.
+6863-final-project is a system to process texts, extract events from the texts, and extract timing and ordering information about events in the text. Sentences in the text are analyzed to build a queryable data structure which maintains the best available time information about each event and the relative orderings of events based on time and text context information. It can also determine whether a given text is temporally logical in its event relationships. Also includes a mini-query language for making time and ordering queries about extracted events.
 
 Source and Setup
 ================
 
 You will create everything inside of a Pyton virtual environment as this is best practice and will not influence any of your global settings.
 
-It us assumed you are attempting this on Ubuntu. This should theoretically work on OS X if you’ve got gcc installed properly to be able to install numpy.
+It is assumed you are attempting this on Ubuntu. This should theoretically work on OS X if you’ve got gcc installed properly to be able to install numpy.
 
 Getting the Source
 ------------------
@@ -23,7 +23,7 @@ Alternately unzip the zip file and call the file 6863-final-project
 
     source 6863-env/bin/activate
     pip install nltk
-    pip install pip-env-reqs.txt
+    pip install -r pip-env-reqs.txt
 
 (The above command will install numpy, and other needed modules)
 Now its time to get the nltk corpora and modules we need. We’ll invoke a Python shell and use the GUI downloader. You must have Python IDLE installed from the PackageManager to find all the necessary corpora.
@@ -59,5 +59,5 @@ or
 
 If you have difficulties, glance over the docs/installation_log and see if you did anything wrong.
 
-You may also ask use Github to communicate with us or contact either [Dalton Hubble](dghubble@gmail.com) or [Thomas Garver](tgarvz@gmail.com)
+Feel free to use Github to communicate with us. Otherwise, you can directly contact [Dalton Hubble](mailto:dghubble@gmail.com) and [Thomas Garver](mailto:tgarvz@gmail.com)
 

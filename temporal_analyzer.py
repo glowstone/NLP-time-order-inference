@@ -328,7 +328,7 @@ def bootstrap(mode_args):
         analyzer = TemporalAnalyzer(text_filename)
         analyzer.shelve_processed_data()
         #print analyzer.order_data_store
-        #print 'logical', analyzer.order_data_store.is_logical()
+        #print 'Is text logical', analyzer.order_data_store.is_logical()
         return analyzer
     elif mode_args['bootstrap_mode'] == 'load':
         shelve_filename = mode_args['bootstrap_data']

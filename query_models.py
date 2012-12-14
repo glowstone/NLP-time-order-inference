@@ -68,4 +68,7 @@ class OrderQuery(Query):
             else:
                 print "Sorry, OrderQuery failed."
         else:
-            print "Sorry, event description(s) did not correspond to an Event"
+            if not event1:
+                print "Sorry, event description 1 did not correspond to en Event"
+            if not event2:
+                print "Sorry, event description 2 did not correspond to en Event"

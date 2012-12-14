@@ -10,10 +10,3 @@ Until the blizzard killed Bill, Alice was visiting the galleria.
 # Blizzard -> [Fred...]
 Fred shoveled snow after the blizzard killed Bill.
 
-
-# Blizzard -> [was major cleanup...]
-#Following the blizzard that killed Bill, there was a major cleanup effort.    
-
-# Blizzard... -> [Sam...] (Blizzard is a ReferenceEvent)
-#After the blizzard exterminated Bill, Sam shovled snow all day.
-

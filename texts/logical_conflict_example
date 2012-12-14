@@ -1,11 +1,8 @@
 
-# Alice -> Bob -> Colleen -> David and then David -> Alice creates a logical conflict
-
+# Alice -> Bob -> Colleen -> Alice (creates a logical conflict)
 
 Alice went to the market before Bob stayed home.
 Bob stayed home before Colleen had roasted beef for dinner.
-David had none.
-Later, Fred did a pset
-# Logical conflicts occur if the next line is included. Try commenting it out.
-Before Alice went to the market, Bob stayed home.
+# Try commenting out the next line to remove the conflict
+Colleen has roasted beet before Alice went to the market.
 

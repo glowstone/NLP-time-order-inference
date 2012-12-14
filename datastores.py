@@ -151,8 +151,6 @@ class OrderDataStore(object):
                     a_before_b = self.depth_first_search(event_a, event_b)
                     b_before_a = self.depth_first_search(event_b, event_a)
                     if a_before_b and b_before_a:
-                        print event_a
-                        print event_b
                         return False
         return True
 
