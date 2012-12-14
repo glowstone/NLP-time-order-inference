@@ -1,6 +1,4 @@
 
-Created by Tommy Garver and Dalton Hubble
-
 6863-final-project is a system to process texts, extract events from the texts, and extract timing and ordering information about events in the text. Sentences in the text are analyzed to build a queryable data structure which maintains the best available time information about each event and the relative orderings of events based on time and text context information. Can also determine whether a given text is temporally logical in its event relationships. Also includes a mini-query language for making time and ordering queries about extracted events.
 
 Source and Setup
@@ -30,7 +28,7 @@ Alternately unzip the zip file and call the file 6863-final-project
 (The above command will install numpy, and other needed modules)
 Now its time to get the nltk corpora and modules we need. We’ll invoke a Python shell and use the GUI downloader. You must have Python IDLE installed from the PackageManager to find all the necessary corpora.
 
-![Alt text](/docs/img/idle_install.png "Package Manager Installation of IDLE")
+![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/idle_install.png "Package Manager Installation of IDLE")
 
 Once you’re sure you have IDLE,
 
@@ -42,9 +40,9 @@ This will open up GUI NLTK Package Downloader
 Install the following Corpora: ptb, stopwords, treebank, words
 Install the following Models: hmm_treebank_pos_tagger, maxent_ne_chunker, maxent_treebank_pos_tagger, punktk
 
-![Alt text](/docs/img/corpora.png "Install Corpora")
+![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/corpora.png "Install Corpora")
 
-![Alt text](/docs/img/models.png "Install Models")
+![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/models.png "Install Models")
 
     quit()   # This leaves the Python shell. 
 
@@ -56,10 +54,10 @@ or
 
     python temporal_analyzer.py -f texts/ordering_example -q queries/ordering_example_query
 
-![Alt text](/docs/img/ordering_example_w_ref.png "Success")
+![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/ordering_example_w_ref.png "Success")
 
 
 If you have difficulties, glance over the docs/installation_log and see if you did anything wrong.
 
-You may also ask use Github to communicate with us or contact us at dghubble@gmail.com and tgarvz@gmail.com 
+You may also ask use Github to communicate with us or contact either [Dalton Hubble](dghubble@gmail.com) or [Thomas Garver](tgarvz@gmail.com)
 
