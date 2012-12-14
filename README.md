@@ -1,25 +1,65 @@
 
+Created by Tommy Garver and Dalton Hubble
 
-For our final project in the class, we envision a system that can take a large passage of 
-text and extract the significant actions performed by people or organizations (i.e the “events”)
-and infer a temporal ordering of those actions. A system with these capabilities would be useful 
-for answering queries about event ordering and for summarizing large texts.
-We plan to build a system that will recognize and tag events in text and construct a 
-representation of the time information related to those events. 
+6863-final-project is a system to process texts, extract events from the texts, and extract timing and ordering information about events in the text. Sentences in the text are analyzed to build a queryable data structure which maintains the best available time information about each event and the relative orderings of events based on time and text context information. Can also determine whether a given text is temporally logical in its event relationships. Also includes a mini-query language for making time and ordering queries about extracted events.
 
-The types of events our system 
-will focus on recognizing are actions performed by people or organizations. We will identify 
-events using part of speech tagging, entity tagging, and by filtering out extraneous words. We 
-will then use entity tagging to identify absolute time entities (ex. Tuesday) and relative time 
-entities (ex. before, after, next) that occur in sentences with events in them. One strategy for 
-using these tags to order events is the following: (1) Identify events that are paired with exact 
-times (2) Order events that use relative time entities to refer to other events (3) If an event 
-in the text is not related to any other event and has no absolute time, we assume the event 
-occurs after the previous event in the text since most prose is written chronologically. Using 
-this strategy, we can build a timeline that uses the events with exact times as a baseline for the 
-ordering.
+Source and Setup
+================
+
+You will create everything inside of a Pyton virtual environment as this is best practice and will not influence any of your global settings.
+
+It us assumed you are attempting this on Ubuntu. This should theoretically work on OS X if you’ve got gcc installed properly to be able to install numpy.
+
+Getting the Source
+------------------
+Git Approach
+
+    git clone https://github.com/dghubble/6863-final-project.git
+    cd 6863-final-project
+
+Alternately unzip the zip file and call the file 6863-final-project
+
+    virtualenv 6863-env
+
+(Not if the previous step fails, you need virtualenv. Try running “sudo easy_install virtualenv”)
+
+    source 6863-env/bin/activate
+    pip install nltk
+    pip install pip-env-reqs.txt
+
+(The above command will install numpy, and other needed modules)
+Now its time to get the nltk corpora and modules we need. We’ll invoke a Python shell and use the GUI downloader. You must have Python IDLE installed from the PackageManager to find all the necessary corpora.
+
+![Alt text](/docs/img/idle_install.png "Package Manager Installation of IDLE")
+
+Once you’re sure you have IDLE,
+
+    python
+    import nltk
+    nltk.download()
+
+This will open up GUI NLTK Package Downloader
+Install the following Corpora: ptb, stopwords, treebank, words
+Install the following Models: hmm_treebank_pos_tagger, maxent_ne_chunker, maxent_treebank_pos_tagger, punktk
+
+![Alt text](/docs/img/corpora.png "Install Corpora")
+
+![Alt text](/docs/img/models.png "Install Models")
+
+    quit()   # This leaves the Python shell. 
+
+You should be all set. Try running 
+
+    python temporal_analyzer.py -f texts/time_example
+
+or 
+
+    python temporal_analyzer.py -f texts/ordering_example -q queries/ordering_example_query
+
+![Alt text](/docs/img/ordering_example_w_ref.png "Success")
 
 
-The final system should be able to take input text and output the chronologically ordered 
-events extracted from the text. After doing this processing, the system will also support queries 
-about which of two events happened first, giving the exact time of each event, if available.
+If you have difficulties, glance over the docs/installation_log and see if you did anything wrong.
+
+You may also ask use Github to communicate with us or contact us at dghubble@gmail.com and tgarvz@gmail.com 
+
