@@ -28,7 +28,7 @@ Alternately unzip the zip file and call the file 6863-final-project
 (The above command will install numpy, and other needed modules)
 Now its time to get the nltk corpora and modules we need. We’ll invoke a Python shell and use the GUI downloader. You must have Python IDLE installed from the PackageManager to find all the necessary corpora.
 
-![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/idle_install.png "Package Manager Installation of IDLE")
+![Ubuntu Package Manager IDLE Install](https://raw.github.com/dghubble/6863-final-project/master/docs/img/idle_install.png "Package Manager Installation of IDLE")
 
 Once you’re sure you have IDLE,
 
@@ -40,9 +40,9 @@ This will open up GUI NLTK Package Downloader
 Install the following Corpora: ptb, stopwords, treebank, words
 Install the following Models: hmm_treebank_pos_tagger, maxent_ne_chunker, maxent_treebank_pos_tagger, punktk
 
-![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/corpora.png "Install Corpora")
+![Corpora Installation GUI](https://raw.github.com/dghubble/6863-final-project/master/docs/img/corpora.png "Install Corpora")
 
-![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/models.png "Install Models")
+![Model Installation GUI](https://raw.github.com/dghubble/6863-final-project/master/docs/img/models.png "Install Models")
 
     quit()   # This leaves the Python shell. 
 
@@ -54,7 +54,7 @@ or
 
     python temporal_analyzer.py -f texts/ordering_example -q queries/ordering_example_query
 
-![Alt text](https://github.com/dghubble/6863-final-project/blob/master/docs/img/ordering_example_w_ref.png "Success")
+![Running an Ordering Example](https://raw.github.com/dghubble/6863-final-project/master/docs/img/ordering_example_w_ref.png "Success")
 
 
 If you have difficulties, glance over the docs/installation_log and see if you did anything wrong.
